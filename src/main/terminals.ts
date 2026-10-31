@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
-import { basename } from 'node:path'
+import { existsSync } from 'node:fs'
+import { basename, delimiter, extname, isAbsolute, join } from 'node:path'
 import * as pty from 'node-pty'
 import type { AgentConfig } from '@shared/types'
 
@@ -8,6 +9,40 @@ const SHELLS = new Set(['powershell', 'pwsh', 'cmd', 'bash', 'zsh', 'sh', 'fish'
 /** Plain shells would try to run a nudge as a command, so we only nudge agent CLIs. */
 export function isShell(command: string): boolean {
   return SHELLS.has(basename(command).toLowerCase().replace(/\.exe$/, ''))
+}
+
+/**
+ * ConPTY only launches real executables found by name, so on Windows we resolve the command
+ * through PATH and PATHEXT ourselves and run .cmd/.bat shims (npm installs) through cmd.exe.
+ */
+export function resolveCommand(command: string, args: string[]): { file: string; args: string[] } {
+  if (process.platform !== 'win32') return { file: command, args }
+  const exts = extname(command) ? [''] : (process.env.PATHEXT || '.COM;.EXE;.BAT;.CMD').split(';')
+  const dirs = isAbsolute(command) ? [''] : (process.env.PATH || '').split(delimiter).filter(Boolean)
+  for (const dir of dirs)
+    for (const ext of exts) {
+      const file = dir ? join(dir, command + ext) : command + ext
+      if (!existsSync(file)) continue
+      if (/\.(cmd|bat)$/i.test(file)) return { file: process.env.ComSpec || 'cmd.exe', args: ['/d', '/s', '/c', file, ...args] }
+      return { file, args }
+    }
+  return { file: command, args }
+}
+
+export function commandExists(command: string): boolean {
+  if (process.platform === 'win32') return resolveCommand(command, []).file !== command
+  return (process.env.PATH || '').split(delimiter).some((dir) => dir && existsSync(join(dir, command)))
+}
+
+// Variables a Claude Code host session sets for its own children. An agent CLI that inherits them
+// thinks it is nested inside that session, so drop them when the app itself was started from one.
+const HOST_SESSION_VAR = /^(CLAUDECODE|CLAUDE_PID|CLAUDE_AGENT_SDK_.*|CLAUDE_CODE_.*|ANTHROPIC_BASE_URL)$/
+
+export function agentBaseEnv(): Record<string, string> {
+  const env = { ...process.env } as Record<string, string>
+  if (env.CLAUDECODE || env.CLAUDE_CODE_DESKTOP_APP_VERSION)
+    for (const key of Object.keys(env)) if (HOST_SESSION_VAR.test(key)) delete env[key]
+  return env
 }
 
 export class Terminals extends EventEmitter {
@@ -24,12 +59,13 @@ export class Terminals extends EventEmitter {
     }
     let proc: pty.IPty
     try {
-      proc = pty.spawn(agent.command, agent.args, {
+      const { file, args } = resolveCommand(agent.command, agent.args)
+      proc = pty.spawn(file, args, {
         name: 'xterm-256color',
         cols,
         rows,
         cwd,
-        env: { ...process.env, ...env } as Record<string, string>
+        env: { ...agentBaseEnv(), ...env }
       })
     } catch (err) {
       this.emit('data', agent.id, `\r\n\x1b[31mCould not start "${agent.command}": ${(err as Error).message}\x1b[0m\r\n`)

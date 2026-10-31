@@ -2,14 +2,17 @@ import { EventEmitter } from 'node:events'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { AgentConfig, HiveMessage } from '@shared/types'
+import { commandExists } from './terminals'
 
 const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572', '#2a9d8f', '#d4a373']
 
 const SHELL = process.platform === 'win32' ? 'powershell.exe' : process.env.SHELL || 'bash'
 
 function defaultAgents(): AgentConfig[] {
+  // The orchestrator is only useful as a real agent CLI; fall back to a shell when none is installed.
+  const boss = commandExists('claude') ? 'claude' : SHELL
   return [
-    { id: 'art', name: 'Art Vandelay', command: SHELL, args: [], cwd: '', color: PALETTE[0], orchestrator: true },
+    { id: 'art', name: 'Art Vandelay', command: boss, args: [], cwd: '', color: PALETTE[0], orchestrator: true },
     { id: 'kramer', name: 'Kramer', command: SHELL, args: [], cwd: '', color: PALETTE[1] },
     { id: 'elaine', name: 'Elaine', command: SHELL, args: [], cwd: '', color: PALETTE[2] }
   ]

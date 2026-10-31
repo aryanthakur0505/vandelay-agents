@@ -85,9 +85,14 @@ Each PTY gets `VANDELAY_AGENT`, `VANDELAY_HIVE` and `VANDELAY_AGENT_DIR` in its 
 
 ### Using real agent CLIs
 
-The default roster runs PowerShell (or your `$SHELL`) so the app works out of the box. To make an
-agent real, either hire a new one with **+ Add agent** and the command `claude`, or edit
-`.vandelay/agents.json` and change `command`, then restart the app.
+In a new hive, Art Vandelay runs `claude` if it is on your `PATH`; everyone else runs PowerShell (or
+your `$SHELL`). To make another agent real, hire one with **+ Add agent** and the command `claude`,
+or edit `.vandelay/agents.json` and change `command`, then restart the app. Sign in once inside the
+agent's terminal the first time it runs.
+
+On Windows, commands are resolved through `PATH` and `PATHEXT`, so npm shims like `claude.cmd` work
+by name. If the app was itself started from inside a Claude Code session, that session's
+`CLAUDE_*` variables are removed from agent terminals so each agent starts as its own session.
 
 ## Project layout
 
