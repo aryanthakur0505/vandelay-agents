@@ -2,6 +2,8 @@ appId: dev.vandelay.agents
 productName: Vandelay Agents
 directories:
   output: release
+# No spaces: GitHub renames release files that have them.
+artifactName: vandelay-agents-${version}-${os}-${arch}.${ext}
 files:
   - out/**
   - package.json

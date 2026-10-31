@@ -27,7 +27,29 @@ Milestone 1 (MVP):
 
 Later: voice, Slack, approvals, budgets, semantic memory, walking avatars.
 
-## Getting started
+## Install
+
+Download the installer for your system from the [latest release](../../releases/latest):
+
+| System | File | First launch |
+| --- | --- | --- |
+| Windows 10/11 (x64) | `vandelay-agents-x.y.z-win-x64.exe` | The installer isn't code-signed, so SmartScreen warns: click **More info → Run anyway**. |
+| macOS (Apple silicon) | `vandelay-agents-x.y.z-mac-arm64.dmg` | Not notarized: drag the app to Applications, then run `xattr -cr "/Applications/Vandelay Agents.app"` once. |
+| Linux (x64) | `vandelay-agents-x.y.z-linux-*.AppImage` | `chmod +x` the file, then run it. |
+
+On first launch the app asks which folder your agents should work in (usually a project folder).
+
+To get real agents rather than plain shells, you also need:
+
+- [Claude Code](https://docs.claude.com/en/docs/claude-code) (`claude`) on your `PATH`, signed in
+  once in a normal terminal. Other agent CLIs (`codex`, `gemini`, …) work too, with typed prompts
+  instead of hooks.
+- [Node.js](https://nodejs.org) on your `PATH`. Claude agents' mail hook runs on it.
+
+Agents act with your Claude account and your Claude Code permission settings, in the folder you
+choose. Point it at a project you're happy for them to edit.
+
+## Build from source
 
 ### Prerequisites
 
@@ -148,6 +170,21 @@ src/
   shared/      types shared by all three
 test/          vitest unit tests
 ```
+
+## Contributing
+
+Issues and pull requests are welcome. Before opening a PR, run `npm run typecheck` and `npm test`;
+CI runs both, plus a build, on Windows, macOS and Linux. Keep code and art original: no assets or
+code copied from other projects.
+
+To publish a release, bump `version` in `package.json`, commit, then tag and push:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+The Release workflow builds the installers on all three systems and attaches them to a GitHub
+release for that tag.
 
 ## License
 
