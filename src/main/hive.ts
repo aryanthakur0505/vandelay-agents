@@ -9,12 +9,12 @@ const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572
 const SHELL = process.platform === 'win32' ? 'powershell.exe' : process.env.SHELL || 'bash'
 
 function defaultAgents(): AgentConfig[] {
-  // The orchestrator is only useful as a real agent CLI; fall back to a shell when none is installed.
-  const boss = findExecutable('claude') ? 'claude' : SHELL
+  // Agents are only useful as a real agent CLI; fall back to a shell when none is installed.
+  const cli = findExecutable('claude') ? 'claude' : SHELL
   return [
-    { id: 'art', name: 'Art Vandelay', command: boss, args: [], cwd: '', color: PALETTE[0], orchestrator: true },
-    { id: 'kramer', name: 'Kramer', command: SHELL, args: [], cwd: '', color: PALETTE[1] },
-    { id: 'elaine', name: 'Elaine', command: SHELL, args: [], cwd: '', color: PALETTE[2] }
+    { id: 'art', name: 'Art Vandelay', command: cli, args: [], cwd: '', color: PALETTE[0], orchestrator: true },
+    { id: 'kramer', name: 'Kramer', command: cli, args: [], cwd: '', color: PALETTE[1] },
+    { id: 'elaine', name: 'Elaine', command: cli, args: [], cwd: '', color: PALETTE[2] }
   ]
 }
 
@@ -36,6 +36,9 @@ Please write tests for src/parser.ts and reply when done.
 \`\`\`
 
 Never edit another agent's folder directly. Only the router moves files between agents.
+
+Only reply to a message that asks for something. Don't answer a reply or an acknowledgement, and
+don't send thank-you notes, or two agents can end up messaging each other forever.
 `
 
 const ORCHESTRATOR_ROLE = `# Role: orchestrator
@@ -44,6 +47,14 @@ You are Art Vandelay, head of Vandelay Industries (importer/exporter of work).
 The human briefs you through your inbox. Break the work into tasks, send each task to the
 right agent through your outbox, and collect their replies. Answer the human by writing to
 \`to: you\`. Escalate only decisions that need the human (spending money, deleting things, scope changes).
+`
+
+const WORKER_ROLE = `# Role: worker
+
+You work for Vandelay Industries. Tasks arrive in your inbox, usually from Art Vandelay (\`art\`).
+Do the work in the workspace, then reply to whoever sent the task through your outbox with a
+short report of what you did. If you are blocked or the task is unclear, ask the sender instead
+of guessing. Keep replies brief.
 `
 
 export class Hive extends EventEmitter {
@@ -146,7 +157,7 @@ export class Hive extends EventEmitter {
     for (const sub of ['inbox', 'outbox', 'archive']) mkdirSync(join(dir, sub), { recursive: true })
     const memory = join(dir, 'memory.md')
     if (!existsSync(memory)) writeFileSync(memory, `# ${a.name} memory\n\n`)
-    if (a.orchestrator) writeFileSync(join(dir, 'ROLE.md'), ORCHESTRATOR_ROLE)
+    writeFileSync(join(dir, 'ROLE.md'), a.orchestrator ? ORCHESTRATOR_ROLE : WORKER_ROLE)
   }
 
   private save(): void {

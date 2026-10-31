@@ -83,10 +83,12 @@ depends on what it runs:
 - **`claude` agents** are started with `--settings .vandelay/agents/<id>/claude-settings.json`,
   which adds two Claude Code hooks (merged with your own settings, nothing of yours is edited). A
   `SessionStart` hook tells Claude who it is and how the protocol works. An `asyncRewake` watcher,
-  armed at session start and after every turn, waits for new inbox files and exits with code 2,
-  which wakes Claude even when it is idle. Nothing is typed into the terminal, so dialogs and
-  permission prompts are never answered by accident. The hook script runs on `node`; without Node
-  on `PATH`, claude agents fall back to typed prompts.
+  armed at session start and after every turn, waits for new inbox files, moves them to `archive/`
+  and exits with code 2 with the message text, which wakes Claude even when it is idle. Nothing is
+  typed into the terminal, so dialogs and permission prompts are never answered by accident. The
+  settings also let the agent write in its own folder (outbox, memory) without a permission prompt;
+  anything else follows your normal Claude Code permission mode. The hook script runs on `node`;
+  without Node on `PATH`, claude agents fall back to typed prompts.
 - **Other agent CLIs** get a short prompt typed into their terminal once it has been quiet for two
   seconds.
 - **Plain shells** get nothing typed; check the inbox yourself.
@@ -95,10 +97,13 @@ Each PTY gets `VANDELAY_AGENT`, `VANDELAY_HIVE` and `VANDELAY_AGENT_DIR` in its 
 
 ### Using real agent CLIs
 
-In a new hive, Art Vandelay runs `claude` if it is on your `PATH`; everyone else runs PowerShell (or
-your `$SHELL`). To make another agent real, hire one with **+ Add agent** and the command `claude`,
-or edit `.vandelay/agents.json` and change `command`, then restart the app. Sign in once inside the
-agent's terminal the first time it runs.
+In a new hive, Art Vandelay, Kramer and Elaine all run `claude` if it is on your `PATH`, and
+PowerShell (or your `$SHELL`) otherwise. An existing hive keeps its roster: hire more agents with
+**+ Add agent** and the command `claude`, or edit `command` in `.vandelay/agents.json` and restart
+the app. Sign in once inside an agent's terminal the first time it runs.
+
+Workers get a short `ROLE.md`: do the task, reply to the sender, ask when blocked. The protocol tells
+agents not to answer replies or acknowledgements, so two agents can't thank each other forever.
 
 On Windows, commands are resolved through `PATH` and `PATHEXT`, so npm shims like `claude.cmd` work
 by name. If the app was itself started from inside a Claude Code session, that session's

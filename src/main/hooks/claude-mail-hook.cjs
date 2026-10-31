@@ -3,7 +3,8 @@
 //
 //   node claude-mail-hook.cjs context <agentDir>   SessionStart: tell Claude who it is
 //   node claude-mail-hook.cjs watch <agentDir>     SessionStart/Stop with asyncRewake: wait for
-//                                                  new inbox mail, then exit 2 to wake Claude
+//                                                  new inbox mail, archive it, then exit 2
+//                                                  with the mail in stderr to wake Claude
 'use strict'
 const fs = require('fs')
 const path = require('path')
@@ -13,7 +14,7 @@ const id = path.basename(agentDir)
 const hiveRoot = path.resolve(agentDir, '..', '..')
 const inbox = path.join(agentDir, 'inbox')
 const lockFile = path.join(agentDir, '.watcher')
-const notifiedFile = path.join(agentDir, '.notified')
+const archive = path.join(agentDir, 'archive')
 
 // Claude Code writes the hook input to stdin; we don't need it, but drain it so the pipe closes.
 process.stdin.on('error', () => {})
@@ -40,7 +41,7 @@ function context() {
   const role = read(path.join(agentDir, 'ROLE.md'))
   const text = [
     `You are ${agentName()} (agent id "${id}") in Vandelay Agents, a team of terminal agents.`,
-    `Your hive folder is ${agentDir}. New mail in ${inbox} wakes you automatically.`,
+    `Your hive folder is ${agentDir}. New mail wakes you automatically, with the message text included and the file already moved from inbox/ to archive/, so you never need to move mail yourself.`,
     `Start by reading your memory at ${path.join(agentDir, 'memory.md')}.`,
     '',
     read(path.join(hiveRoot, 'PROTOCOL.md')),
@@ -49,6 +50,9 @@ function context() {
   process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text } }))
   process.exit(0)
 }
+
+// Long messages are cut short in the wake-up note; the full text stays in archive/.
+const MAX_BODY = 8000
 
 function watch() {
   // The newest watcher owns the lock; older ones (from earlier turns) see that and bow out.
@@ -62,14 +66,25 @@ function watch() {
     } catch {
       files = []
     }
-    // Announce each file once, so mail Claude leaves in the inbox can't wake it in a loop.
-    const notified = new Set(read(notifiedFile).split('\n').filter((f) => files.includes(f)))
-    const fresh = files.filter((f) => !notified.has(f))
-    if (fresh.length === 0) return setTimeout(tick, 1000)
-    fs.writeFileSync(notifiedFile, [...notified, ...fresh].join('\n'))
+    // Hand Claude the mail itself and file it in archive/, so the agent needs no shell commands to
+    // read or move it, and the same mail can never wake it twice.
+    const letters = []
+    for (const f of files) {
+      const text = read(path.join(inbox, f))
+      const dest = path.join(archive, f)
+      try {
+        fs.renameSync(path.join(inbox, f), dest)
+      } catch {
+        continue // still being written, or locked; try again next tick
+      }
+      const body = text.length > MAX_BODY ? `${text.slice(0, MAX_BODY)}\n[... cut short, full text in ${dest}]` : text
+      letters.push(`=== ${f} (now in ${dest}) ===\n${body.trim()}`)
+    }
+    if (letters.length === 0) return setTimeout(tick, 1000)
     process.stderr.write(
-      `You have ${fresh.length} new message(s) in ${inbox}: ${fresh.join(', ')}. ` +
-        'Read each one, act on it, reply through your outbox if needed, then move it to archive/.'
+      `You have ${letters.length} new message(s). They are already filed in ${archive}. ` +
+        'Act on each one and reply through your outbox if needed.\n\n' +
+        letters.join('\n\n')
     )
     process.exit(2)
   }

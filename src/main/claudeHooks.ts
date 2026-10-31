@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import type { AgentConfig } from '@shared/types'
 import hookScript from './hooks/claude-mail-hook.cjs?raw'
@@ -15,6 +15,7 @@ export function isClaude(command: string): boolean {
  * Claude agents get their mail through Claude Code hooks instead of typed prompts: a SessionStart
  * hook adds the agent's identity and the protocol to context, and an asyncRewake watcher (armed at
  * SessionStart and after every turn) wakes Claude when new mail lands in its inbox.
+ * The hook also hands over the mail itself, so the agent only needs to write to its own folder.
  * Returns the extra CLI args, or null when Node isn't available to run the hook.
  */
 export function claudeHookArgs(hiveRoot: string, agent: AgentConfig, agentDir: string): string[] | null {
@@ -23,12 +24,13 @@ export function claudeHookArgs(hiveRoot: string, agent: AgentConfig, agentDir: s
   const script = join(hiveRoot, 'bin', 'claude-mail-hook.cjs')
   mkdirSync(join(hiveRoot, 'bin'), { recursive: true })
   writeFileSync(script, hookScript)
-  // A new session should hear about everything already waiting.
-  rmSync(join(agentDir, '.notified'), { force: true })
 
   const run = (mode: string, extra: object = {}): object => ({ type: 'command', command: node, args: [script, mode, agentDir], ...extra })
   const watch = run('watch', { asyncRewake: true, timeout: WATCH_TIMEOUT_S })
   const settings = {
+    // Let the agent write in its own folder (outbox, memory) without a permission prompt. Claude Code
+    // matches Windows paths in POSIX form, and `//` marks an absolute path.
+    permissions: { allow: [`Edit(/${toPosix(agentDir)}/**)`] },
     hooks: {
       SessionStart: [{ hooks: [run('context'), watch] }],
       Stop: [{ hooks: [watch] }]
@@ -37,4 +39,9 @@ export function claudeHookArgs(hiveRoot: string, agent: AgentConfig, agentDir: s
   const file = join(agentDir, 'claude-settings.json')
   writeFileSync(file, JSON.stringify(settings, null, 2))
   return ['--settings', file]
+}
+
+/** `D:\a\b` -> `/d/a/b`, the form Claude Code permission rules match on Windows. */
+function toPosix(p: string): string {
+  return p.replace(/\\/g, '/').replace(/^([A-Za-z]):/, (_m, d: string) => `/${d.toLowerCase()}`)
 }
