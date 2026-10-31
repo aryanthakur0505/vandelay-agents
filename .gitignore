@@ -1,0 +1,18 @@
+node_modules/
+out/
+dist/
+release/
+*.log
+
+# Runtime hive (agent inboxes, outboxes, memory) lives here when run from the repo
+.vandelay/
+
+# Third-party reference material, kept locally only
+docs/reference-*
+
+.DS_Store
+Thumbs.db
+.env
+.env.*
+
+*.tsbuildinfo
