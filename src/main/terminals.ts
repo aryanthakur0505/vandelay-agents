@@ -45,8 +45,13 @@ export function agentBaseEnv(): Record<string, string> {
   return env
 }
 
+const QUIET_MS = 2000
+
 export class Terminals extends EventEmitter {
   private ptys = new Map<string, pty.IPty>()
+  private lastOutput = new Map<string, number>()
+  private pending = new Map<string, string>()
+  private flushTimer: NodeJS.Timeout | null = null
 
   isRunning(id: string): boolean {
     return this.ptys.has(id)
@@ -73,7 +78,10 @@ export class Terminals extends EventEmitter {
       return
     }
     this.ptys.set(agent.id, proc)
-    proc.onData((data) => this.emit('data', agent.id, data))
+    proc.onData((data) => {
+      this.lastOutput.set(agent.id, Date.now())
+      this.emit('data', agent.id, data)
+    })
     proc.onExit(({ exitCode }) => {
       if (this.ptys.get(agent.id) === proc) this.ptys.delete(agent.id)
       this.emit('exit', agent.id, exitCode)
@@ -84,12 +92,33 @@ export class Terminals extends EventEmitter {
     this.ptys.get(id)?.write(data)
   }
 
-  /** Types a prompt into the agent CLI and presses Enter a beat later, as TUIs need. */
+  /**
+   * Queues a prompt for the agent CLI. A TUI drops input that arrives while it is busy or still
+   * starting, so the prompt waits until the terminal has been quiet for QUIET_MS. A newer nudge for
+   * the same agent replaces a pending one, so a burst of mail becomes one prompt.
+   */
   nudge(id: string, text: string): void {
-    const p = this.ptys.get(id)
-    if (!p) return
-    p.write(text)
-    setTimeout(() => p.write('\r'), 150)
+    this.pending.set(id, text)
+    this.flushTimer ??= setInterval(() => this.flushNudges(), 250)
+  }
+
+  private flushNudges(): void {
+    for (const [id, text] of this.pending) {
+      const p = this.ptys.get(id)
+      if (!p) {
+        this.pending.delete(id)
+        continue
+      }
+      if (Date.now() - (this.lastOutput.get(id) ?? 0) < QUIET_MS) continue
+      this.pending.delete(id)
+      p.write(text)
+      // Enter a beat later, or the TUI treats it as part of a paste.
+      setTimeout(() => p.write('\r'), 150)
+    }
+    if (this.pending.size === 0 && this.flushTimer) {
+      clearInterval(this.flushTimer)
+      this.flushTimer = null
+    }
   }
 
   resize(id: string, cols: number, rows: number): void {

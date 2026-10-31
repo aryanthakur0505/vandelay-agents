@@ -1,4 +1,4 @@
-import { join } from 'node:path'
+import { dirname, join } from 'node:path'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import type { AgentConfig, HiveMessage } from '@shared/types'
 import { Hive } from './hive'
@@ -50,11 +50,13 @@ function agentEnv(agent: AgentConfig): Record<string, string> {
   }
 }
 
+/** Points at the whole inbox rather than one file, so a coalesced nudge still covers every message. */
 function nudgeText(agent: AgentConfig, msg: HiveMessage): string {
   const role = agent.orchestrator ? ` Your role is in ${join(hive.agentDir(agent.id), 'ROLE.md')}.` : ''
   return (
-    `You are ${agent.name}, an agent in Vandelay Agents. New message from ${msg.from} in ${msg.file}. ` +
-    `Read it and act on it. The messaging protocol is in ${join(hive.root, 'PROTOCOL.md')}.${role}`
+    `You are ${agent.name}, an agent in Vandelay Agents. You have new mail (latest from ${msg.from}). ` +
+    `Read every file in ${dirname(msg.file)}, act on each, then move it to archive/. ` +
+    `The messaging protocol is in ${join(hive.root, 'PROTOCOL.md')}.${role}`
   )
 }
 
