@@ -21,8 +21,11 @@ Milestone 1 (MVP):
 - [x] A 2D floor drawn in code: desks, avatars, status lights, unread envelopes and envelopes flying
       between desks.
 - [x] Add agents from the UI. Agents are saved to `.vandelay/agents.json`.
+- [x] `claude` agents get mail through Claude Code hooks; a full round trip (you → Art → workers →
+      Art → you) runs with nothing typed into a terminal.
+- [x] Optional git worktree per agent, desktop notifications for replies, an installer.
 
-Later: voice, Slack, approvals, budgets, semantic memory, per-agent git worktrees, walking avatars.
+Later: voice, Slack, approvals, budgets, semantic memory, walking avatars.
 
 ## Getting started
 
@@ -39,10 +42,21 @@ Later: voice, Slack, approvals, budgets, semantic memory, per-agent git worktree
 
 ```bash
 npm install
-npm run dev     # opens the app with hot reload
+npm run dev     # opens the app; the UI hot-reloads
 ```
 
-Other scripts: `npm run build`, `npm run preview` and `npm run typecheck`.
+| Script | What it does |
+| --- | --- |
+| `npm run dev:watch` | like `dev`, but also restarts the app when `src/main` or `src/preload` change (this restarts your agents) |
+| `npm test` | unit tests (vitest): router, mail hook, claude settings, worktrees |
+| `npm run typecheck` | TypeScript checks for all three processes |
+| `npm run build` / `npm run preview` | production build, and running it |
+| `npm run dist` | an installer in `release/` (NSIS on Windows, dmg on macOS, AppImage on Linux) |
+| `npm run dist:dir` | the unpacked app only, quicker to test |
+
+`npm run dev` works in the folder it was started from. The installed app asks for a folder the first
+time and remembers it; click **change** next to the path in the header to switch (the app restarts).
+`VANDELAY_WORKSPACE` overrides both.
 
 Set `VANDELAY_DEBUG_PORT=9333` before `npm run dev` to expose the Chrome DevTools Protocol, which
 lets scripts inspect or screenshot the UI.
@@ -88,7 +102,10 @@ depends on what it runs:
   typed into the terminal, so dialogs and permission prompts are never answered by accident. The
   settings also let the agent write in its own folder (outbox, memory) without a permission prompt;
   anything else follows your normal Claude Code permission mode. The hook script runs on `node`;
-  without Node on `PATH`, claude agents fall back to typed prompts.
+  without Node on `PATH`, claude agents fall back to typed prompts. If mail is still in the inbox
+  five seconds after it arrives, the watcher has died (it times out after a day), so the app types
+  the prompt instead. When a claude agent starts, any session left over from a force-killed app
+  (found by its settings file) is stopped first.
 - **Other agent CLIs** get a short prompt typed into their terminal once it has been quiet for two
   seconds.
 - **Plain shells** get nothing typed; check the inbox yourself.
@@ -104,6 +121,17 @@ the app. Sign in once inside an agent's terminal the first time it runs.
 
 Workers get a short `ROLE.md`: do the task, reply to the sender, ask when blocked. The protocol tells
 agents not to answer replies or acknowledgements, so two agents can't thank each other forever.
+Replies addressed to you show in full in the message log, with a desktop notification when the
+window isn't focused.
+
+### Git worktrees
+
+Agents that edit code in the same folder can overwrite each other. Tick **Own git worktree** when
+hiring (or set `"worktree": true` in `agents.json`) and the agent works in
+`.vandelay/worktrees/<id>` on branch `vandelay/<id>`, created from the workspace's current commit
+and reused after that. Its role tells it to commit there; merging the branch is up to you. The
+workspace has to be a git repository, otherwise the agent works in the workspace and says why. The
+hive writes its own `.gitignore`, so it never shows up in `git status`.
 
 On Windows, commands are resolved through `PATH` and `PATHEXT`, so npm shims like `claude.cmd` work
 by name. If the app was itself started from inside a Claude Code session, that session's
@@ -113,10 +141,12 @@ by name. If the app was itself started from inside a Claude Code session, that s
 
 ```
 src/
-  main/        Electron main process: window, IPC, PTYs (terminals.ts), hive and router (hive.ts)
+  main/        Electron main process: window, IPC, PTYs (terminals.ts), hive and router (hive.ts),
+               claude hooks (claudeHooks.ts, hooks/), worktrees.ts, workspace.ts
   preload/     the typed bridge exposed as window.vandelay
   renderer/    React UI: floor canvas, terminals, composer
   shared/      types shared by all three
+test/          vitest unit tests
 ```
 
 ## License

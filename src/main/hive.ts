@@ -72,6 +72,8 @@ export class Hive extends EventEmitter {
     mkdirSync(join(this.root, 'dead-letter'), { recursive: true })
     mkdirSync(join(this.root, 'you'), { recursive: true })
     writeFileSync(join(this.root, 'PROTOCOL.md'), PROTOCOL)
+    // Keep the hive out of the workspace's git status, whatever repository it sits in.
+    writeFileSync(join(this.root, '.gitignore'), '*\n')
     const file = join(this.root, 'agents.json')
     this.agents = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : defaultAgents()
     this.save()
@@ -99,6 +101,10 @@ export class Hive extends EventEmitter {
 
   agentDir(id: string): string {
     return join(this.root, 'agents', id)
+  }
+
+  worktreeDir(id: string): string {
+    return join(this.root, 'worktrees', id)
   }
 
   /** Put a message straight into an agent's inbox (used for messages from the human). */
@@ -157,7 +163,10 @@ export class Hive extends EventEmitter {
     for (const sub of ['inbox', 'outbox', 'archive']) mkdirSync(join(dir, sub), { recursive: true })
     const memory = join(dir, 'memory.md')
     if (!existsSync(memory)) writeFileSync(memory, `# ${a.name} memory\n\n`)
-    writeFileSync(join(dir, 'ROLE.md'), a.orchestrator ? ORCHESTRATOR_ROLE : WORKER_ROLE)
+    const worktree = a.worktree
+      ? `\nYou work in your own git worktree on branch \`vandelay/${a.id}\`. Commit your work there and say so in your reply.\n`
+      : ''
+    writeFileSync(join(dir, 'ROLE.md'), (a.orchestrator ? ORCHESTRATOR_ROLE : WORKER_ROLE) + worktree)
   }
 
   private save(): void {

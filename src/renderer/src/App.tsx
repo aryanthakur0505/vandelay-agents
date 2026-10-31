@@ -75,7 +75,12 @@ export function App(): React.JSX.Element {
           <span className="logo">V</span>
           <div>
             <h1>Vandelay Agents</h1>
-            <small title={workspace}>{workspace}</small>
+            <small title="Choose another folder (restarts the app)">
+              {workspace}{' '}
+              <a href="#" onClick={(e) => (e.preventDefault(), window.vandelay.changeWorkspace())}>
+                change
+              </a>
+            </small>
           </div>
         </div>
         <button onClick={() => setAdding((v) => !v)}>{adding ? 'Cancel' : '+ Add agent'}</button>
@@ -98,11 +103,19 @@ export function App(): React.JSX.Element {
           <Composer agents={agents} defaultTo={agents.find((a) => a.orchestrator)?.id ?? agents[0]?.id ?? ''} />
           <ul className="log">
             {log.length === 0 && <li className="muted">No messages yet. Brief Art Vandelay above.</li>}
-            {log.map((m) => (
-              <li key={m.file} title={m.body}>
-                <b>{m.from}</b> → <b>{m.to}</b> <span className="muted">{m.body.slice(0, 80)}</span>
-              </li>
-            ))}
+            {log.map((m) =>
+              m.to === 'you' ? (
+                // Replies to the human are the point of the whole thing, so show them in full.
+                <li key={m.file} className="to-you">
+                  <b>{m.from}</b> → <b>you</b>
+                  <p>{m.body}</p>
+                </li>
+              ) : (
+                <li key={m.file} title={m.body}>
+                  <b>{m.from}</b> → <b>{m.to}</b> <span className="muted">{m.body.slice(0, 80)}</span>
+                </li>
+              )
+            )}
           </ul>
         </section>
 
@@ -120,6 +133,7 @@ export function App(): React.JSX.Element {
             <div className="term-bar">
               <code>
                 {current.command} {current.args.join(' ')}
+                {current.worktree && <span className="muted"> · worktree vandelay/{current.id}</span>}
               </code>
               <button onClick={() => restart(current.id)}>Restart</button>
             </div>
@@ -174,6 +188,7 @@ function AddAgentForm({ onAdd }: { onAdd(input: Omit<AgentConfig, 'id' | 'color'
   const [name, setName] = useState('')
   const [command, setCommand] = useState('claude')
   const [cwd, setCwd] = useState('')
+  const [worktree, setWorktree] = useState(false)
 
   return (
     <form
@@ -181,12 +196,15 @@ function AddAgentForm({ onAdd }: { onAdd(input: Omit<AgentConfig, 'id' | 'color'
       onSubmit={(e) => {
         e.preventDefault()
         const [cmd, ...args] = command.trim().split(/\s+/)
-        if (name.trim() && cmd) onAdd({ name: name.trim(), command: cmd, args, cwd: cwd.trim() })
+        if (name.trim() && cmd) onAdd({ name: name.trim(), command: cmd, args, cwd: cwd.trim(), ...(worktree && { worktree }) })
       }}
     >
       <input autoFocus placeholder="Name (e.g. George)" value={name} onChange={(e) => setName(e.target.value)} />
       <input placeholder="Command (claude, codex, gemini, powershell.exe…)" value={command} onChange={(e) => setCommand(e.target.value)} />
       <input placeholder="Working folder (blank = workspace)" value={cwd} onChange={(e) => setCwd(e.target.value)} />
+      <label title="Work on branch vandelay/<id> in a git worktree of its own, so it can't overwrite other agents' edits">
+        <input type="checkbox" checked={worktree} onChange={(e) => setWorktree(e.target.checked)} /> Own git worktree
+      </label>
       <button type="submit">Hire</button>
     </form>
   )

@@ -9,6 +9,7 @@ function listen<A extends unknown[]>(channel: string, cb: (...args: A) => void):
 
 const api: VandelayApi = {
   workspace: () => ipcRenderer.invoke('workspace'),
+  changeWorkspace: () => ipcRenderer.invoke('workspace:change'),
   listAgents: () => ipcRenderer.invoke('agents:list'),
   addAgent: (agent) => ipcRenderer.invoke('agents:add', agent),
   startAgent: (id, cols, rows) => ipcRenderer.invoke('agents:start', id, cols, rows),

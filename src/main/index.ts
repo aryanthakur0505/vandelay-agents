@@ -1,19 +1,24 @@
-import { rmSync } from 'node:fs'
+import { existsSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
 import type { AgentConfig, HiveMessage } from '@shared/types'
-import { claudeHookArgs, isClaude } from './claudeHooks'
+import { claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
 import { isShell, Terminals } from './terminals'
+import { askForWorkspace, chooseWorkspace, relaunchArgs } from './workspace'
+import { ensureWorktree } from './worktrees'
 
 // Opt-in Chrome DevTools Protocol port, handy for driving the UI from scripts.
 if (process.env.VANDELAY_DEBUG_PORT) app.commandLine.appendSwitch('remote-debugging-port', process.env.VANDELAY_DEBUG_PORT)
 
-const workspace = process.env.VANDELAY_WORKSPACE || process.cwd()
-const hive = new Hive(workspace)
+// Both are set once the app is ready, before anything uses them.
+let workspace = ''
+let hive: Hive
 const terminals = new Terminals()
 /** Agents whose mail arrives through Claude Code hooks rather than typed nudges. */
 const hooked = new Set<string>()
+/** How long a hooked agent's mail watcher gets to pick up new mail before we type a prompt instead. */
+const WATCHER_GRACE_MS = 5000
 let win: BrowserWindow | null = null
 
 function send(channel: string, ...args: unknown[]): void {
@@ -64,6 +69,28 @@ function nudgeText(agent: AgentConfig, msg: HiveMessage): string {
   )
 }
 
+/** Replies to the human are easy to miss while you're in another window, so raise a notification. */
+function notifyHuman(msg: HiveMessage): void {
+  if (!win || win.isDestroyed() || win.isFocused() || !Notification.isSupported()) return
+  const n = new Notification({ title: `${hive.get(msg.from)?.name ?? msg.from} replied`, body: msg.body.slice(0, 200) })
+  n.on('click', () => win?.show())
+  n.show()
+  win.flashFrame(true)
+}
+
+/** The agent's working folder: its own git worktree when it asks for one, else its cwd or the workspace. */
+async function agentCwd(agent: AgentConfig): Promise<string> {
+  if (!agent.worktree) return agent.cwd || workspace
+  const dir = hive.worktreeDir(agent.id)
+  try {
+    await ensureWorktree(agent.cwd || workspace, dir, agent.id)
+    return dir
+  } catch (err) {
+    send('pty:data', agent.id, `\x1b[33mNo worktree (${(err as Error).message}); working in the workspace.\x1b[0m\r\n`)
+    return agent.cwd || workspace
+  }
+}
+
 function wire(): void {
   terminals.on('data', (id: string, data: string) => send('pty:data', id, data))
   terminals.on('exit', (id: string, code: number) => {
@@ -74,23 +101,47 @@ function wire(): void {
 
   hive.on('delivered', (msg: HiveMessage) => {
     send('hive:delivered', msg)
+    if (msg.to === 'you') return notifyHuman(msg)
     const agent = hive.get(msg.to)
-    // Hooked claude agents pick up their own mail; other CLIs get the prompt typed in.
-    if (agent && terminals.isRunning(agent.id) && !isShell(agent.command) && !hooked.has(agent.id))
-      terminals.nudge(agent.id, nudgeText(agent, msg))
+    if (!agent || !terminals.isRunning(agent.id) || isShell(agent.command)) return
+    // Other CLIs get the prompt typed in.
+    if (!hooked.has(agent.id)) return terminals.nudge(agent.id, nudgeText(agent, msg))
+    // A live mail watcher files new mail within a second. If the mail is still waiting, the
+    // watcher has died (its timeout ran out, say), so fall back to typing the prompt.
+    setTimeout(() => {
+      if (existsSync(msg.file) && terminals.isRunning(agent.id)) terminals.nudge(agent.id, nudgeText(agent, msg))
+    }, WATCHER_GRACE_MS)
   })
 
   ipcMain.handle('workspace', () => workspace)
+  ipcMain.handle('workspace:change', () => {
+    const dir = askForWorkspace()
+    if (!dir) return
+    // The hive, router and terminals all belong to one workspace, so start over in the new one.
+    terminals.stopAll()
+    app.relaunch({ args: relaunchArgs(dir) })
+    app.exit(0)
+  })
   ipcMain.handle('agents:list', () => hive.list())
   ipcMain.handle('agents:add', (_e, input: Omit<AgentConfig, 'id' | 'color'>) => hive.add(input))
-  ipcMain.handle('agents:start', (_e, id: string, cols: number, rows: number) => {
+  const starting = new Set<string>()
+  ipcMain.handle('agents:start', async (_e, id: string, cols: number, rows: number) => {
     const agent = hive.get(id)
     if (!agent) throw new Error(`Unknown agent ${id}`)
     if (terminals.isRunning(id)) return terminals.resize(id, cols, rows)
-    const hookArgs = isClaude(agent.command) ? claudeHookArgs(hive.root, agent, hive.agentDir(id)) : null
-    if (hookArgs) hooked.add(id)
-    else hooked.delete(id)
-    terminals.start(agent, agent.cwd || workspace, agentEnv(agent), cols, rows, hookArgs ?? [])
+    if (starting.has(id)) return
+    starting.add(id)
+    try {
+      const claude = isClaude(agent.command)
+      if (claude) await stopOrphans(hive.agentDir(id))
+      const cwd = await agentCwd(agent)
+      const hookArgs = claude ? claudeHookArgs(hive.root, agent, hive.agentDir(id)) : null
+      if (hookArgs) hooked.add(id)
+      else hooked.delete(id)
+      terminals.start(agent, cwd, agentEnv(agent), cols, rows, hookArgs ?? [])
+    } finally {
+      starting.delete(id)
+    }
   })
   ipcMain.handle('agents:stop', (_e, id: string) => terminals.stop(id))
   ipcMain.handle('hive:send', (_e, to: string, body: string) => {
@@ -101,6 +152,10 @@ function wire(): void {
 }
 
 app.whenReady().then(() => {
+  const chosen = chooseWorkspace()
+  if (!chosen) return app.quit()
+  workspace = chosen
+  hive = new Hive(workspace)
   hive.init()
   hive.startRouter()
   wire()
@@ -112,6 +167,6 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   terminals.stopAll()
-  hive.stopRouter()
+  hive?.stopRouter()
   if (process.platform !== 'darwin') app.quit()
 })

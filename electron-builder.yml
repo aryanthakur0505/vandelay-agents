@@ -1,0 +1,23 @@
+appId: dev.vandelay.agents
+productName: Vandelay Agents
+directories:
+  output: release
+files:
+  - out/**
+  - package.json
+# node-pty ships prebuilt N-API binaries, and it starts helper scripts and executables from its own
+# folder, so keep it outside the asar archive and don't rebuild it.
+asarUnpack:
+  - node_modules/node-pty/**
+npmRebuild: false
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+mac:
+  target: dmg
+  category: public.app-category.developer-tools
+linux:
+  target: AppImage
+  category: Development

@@ -10,6 +10,8 @@ export interface AgentConfig {
   color: string
   /** The orchestrator routes work to the others. Exactly one agent has this. */
   orchestrator?: boolean
+  /** Work in a git worktree of its own, on branch `vandelay/<id>`, instead of the shared folder. */
+  worktree?: boolean
 }
 
 export interface HiveMessage {
@@ -23,6 +25,8 @@ export interface HiveMessage {
 
 export interface VandelayApi {
   workspace(): Promise<string>
+  /** Pick another folder; the app restarts there. */
+  changeWorkspace(): Promise<void>
   listAgents(): Promise<AgentConfig[]>
   addAgent(agent: Omit<AgentConfig, 'id' | 'color'>): Promise<AgentConfig>
   startAgent(id: string, cols: number, rows: number): Promise<void>
