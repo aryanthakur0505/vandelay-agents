@@ -76,10 +76,20 @@ to: kramer
 Write tests for src/parser.ts and reply when done.
 ```
 
-The router checks outboxes every second and moves each message to the recipient's inbox. If the
-recipient runs an agent CLI rather than a plain shell, the router also types a short prompt into its
-terminal telling it to read the new message. Messages you send from the composer go straight into
-the chosen agent's inbox.
+The router checks outboxes every second and moves each message to the recipient's inbox. Messages
+you send from the composer go straight into the chosen agent's inbox. How the recipient finds out
+depends on what it runs:
+
+- **`claude` agents** are started with `--settings .vandelay/agents/<id>/claude-settings.json`,
+  which adds two Claude Code hooks (merged with your own settings, nothing of yours is edited). A
+  `SessionStart` hook tells Claude who it is and how the protocol works. An `asyncRewake` watcher,
+  armed at session start and after every turn, waits for new inbox files and exits with code 2,
+  which wakes Claude even when it is idle. Nothing is typed into the terminal, so dialogs and
+  permission prompts are never answered by accident. The hook script runs on `node`; without Node
+  on `PATH`, claude agents fall back to typed prompts.
+- **Other agent CLIs** get a short prompt typed into their terminal once it has been quiet for two
+  seconds.
+- **Plain shells** get nothing typed; check the inbox yourself.
 
 Each PTY gets `VANDELAY_AGENT`, `VANDELAY_HIVE` and `VANDELAY_AGENT_DIR` in its environment.
 

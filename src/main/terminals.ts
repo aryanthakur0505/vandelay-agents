@@ -11,27 +11,29 @@ export function isShell(command: string): boolean {
   return SHELLS.has(basename(command).toLowerCase().replace(/\.exe$/, ''))
 }
 
-/**
- * ConPTY only launches real executables found by name, so on Windows we resolve the command
- * through PATH and PATHEXT ourselves and run .cmd/.bat shims (npm installs) through cmd.exe.
- */
-export function resolveCommand(command: string, args: string[]): { file: string; args: string[] } {
-  if (process.platform !== 'win32') return { file: command, args }
-  const exts = extname(command) ? [''] : (process.env.PATHEXT || '.COM;.EXE;.BAT;.CMD').split(';')
+/** Full path of a command found through PATH (and PATHEXT on Windows), or null. */
+export function findExecutable(command: string): string | null {
+  const win = process.platform === 'win32'
+  const exts = win && !extname(command) ? (process.env.PATHEXT || '.COM;.EXE;.BAT;.CMD').split(';') : ['']
   const dirs = isAbsolute(command) ? [''] : (process.env.PATH || '').split(delimiter).filter(Boolean)
   for (const dir of dirs)
     for (const ext of exts) {
       const file = dir ? join(dir, command + ext) : command + ext
-      if (!existsSync(file)) continue
-      if (/\.(cmd|bat)$/i.test(file)) return { file: process.env.ComSpec || 'cmd.exe', args: ['/d', '/s', '/c', file, ...args] }
-      return { file, args }
+      if (existsSync(file)) return file
     }
-  return { file: command, args }
+  return null
 }
 
-export function commandExists(command: string): boolean {
-  if (process.platform === 'win32') return resolveCommand(command, []).file !== command
-  return (process.env.PATH || '').split(delimiter).some((dir) => dir && existsSync(join(dir, command)))
+/**
+ * ConPTY only launches real executables found by name, so on Windows we resolve the command
+ * ourselves and run .cmd/.bat shims (npm installs) through cmd.exe.
+ */
+export function resolveCommand(command: string, args: string[]): { file: string; args: string[] } {
+  if (process.platform !== 'win32') return { file: command, args }
+  const file = findExecutable(command)
+  if (!file) return { file: command, args }
+  if (/\.(cmd|bat)$/i.test(file)) return { file: process.env.ComSpec || 'cmd.exe', args: ['/d', '/s', '/c', file, ...args] }
+  return { file, args }
 }
 
 // Variables a Claude Code host session sets for its own children. An agent CLI that inherits them
@@ -57,14 +59,14 @@ export class Terminals extends EventEmitter {
     return this.ptys.has(id)
   }
 
-  start(agent: AgentConfig, cwd: string, env: Record<string, string>, cols: number, rows: number): void {
+  start(agent: AgentConfig, cwd: string, env: Record<string, string>, cols: number, rows: number, extraArgs: string[] = []): void {
     if (this.ptys.has(agent.id)) {
       this.resize(agent.id, cols, rows)
       return
     }
     let proc: pty.IPty
     try {
-      const { file, args } = resolveCommand(agent.command, agent.args)
+      const { file, args } = resolveCommand(agent.command, [...agent.args, ...extraArgs])
       proc = pty.spawn(file, args, {
         name: 'xterm-256color',
         cols,

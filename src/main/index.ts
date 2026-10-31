@@ -1,6 +1,8 @@
+import { rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import type { AgentConfig, HiveMessage } from '@shared/types'
+import { claudeHookArgs, isClaude } from './claudeHooks'
 import { Hive } from './hive'
 import { isShell, Terminals } from './terminals'
 
@@ -10,6 +12,8 @@ if (process.env.VANDELAY_DEBUG_PORT) app.commandLine.appendSwitch('remote-debugg
 const workspace = process.env.VANDELAY_WORKSPACE || process.cwd()
 const hive = new Hive(workspace)
 const terminals = new Terminals()
+/** Agents whose mail arrives through Claude Code hooks rather than typed nudges. */
+const hooked = new Set<string>()
 let win: BrowserWindow | null = null
 
 function send(channel: string, ...args: unknown[]): void {
@@ -62,12 +66,18 @@ function nudgeText(agent: AgentConfig, msg: HiveMessage): string {
 
 function wire(): void {
   terminals.on('data', (id: string, data: string) => send('pty:data', id, data))
-  terminals.on('exit', (id: string, code: number) => send('pty:exit', id, code))
+  terminals.on('exit', (id: string, code: number) => {
+    // Removing the lock tells any mail watcher the dead session left behind to stop.
+    rmSync(join(hive.agentDir(id), '.watcher'), { force: true })
+    send('pty:exit', id, code)
+  })
 
   hive.on('delivered', (msg: HiveMessage) => {
     send('hive:delivered', msg)
     const agent = hive.get(msg.to)
-    if (agent && terminals.isRunning(agent.id) && !isShell(agent.command)) terminals.nudge(agent.id, nudgeText(agent, msg))
+    // Hooked claude agents pick up their own mail; other CLIs get the prompt typed in.
+    if (agent && terminals.isRunning(agent.id) && !isShell(agent.command) && !hooked.has(agent.id))
+      terminals.nudge(agent.id, nudgeText(agent, msg))
   })
 
   ipcMain.handle('workspace', () => workspace)
@@ -76,7 +86,11 @@ function wire(): void {
   ipcMain.handle('agents:start', (_e, id: string, cols: number, rows: number) => {
     const agent = hive.get(id)
     if (!agent) throw new Error(`Unknown agent ${id}`)
-    terminals.start(agent, agent.cwd || workspace, agentEnv(agent), cols, rows)
+    if (terminals.isRunning(id)) return terminals.resize(id, cols, rows)
+    const hookArgs = isClaude(agent.command) ? claudeHookArgs(hive.root, agent, hive.agentDir(id)) : null
+    if (hookArgs) hooked.add(id)
+    else hooked.delete(id)
+    terminals.start(agent, agent.cwd || workspace, agentEnv(agent), cols, rows, hookArgs ?? [])
   })
   ipcMain.handle('agents:stop', (_e, id: string) => terminals.stop(id))
   ipcMain.handle('hive:send', (_e, to: string, body: string) => {

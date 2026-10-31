@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type { AgentConfig, HiveMessage } from '@shared/types'
-import { commandExists } from './terminals'
+import { findExecutable } from './terminals'
 
 const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572', '#2a9d8f', '#d4a373']
 
@@ -10,7 +10,7 @@ const SHELL = process.platform === 'win32' ? 'powershell.exe' : process.env.SHEL
 
 function defaultAgents(): AgentConfig[] {
   // The orchestrator is only useful as a real agent CLI; fall back to a shell when none is installed.
-  const boss = commandExists('claude') ? 'claude' : SHELL
+  const boss = findExecutable('claude') ? 'claude' : SHELL
   return [
     { id: 'art', name: 'Art Vandelay', command: boss, args: [], cwd: '', color: PALETTE[0], orchestrator: true },
     { id: 'kramer', name: 'Kramer', command: SHELL, args: [], cwd: '', color: PALETTE[1] },
@@ -156,7 +156,8 @@ export class Hive extends EventEmitter {
 
 /** Reads `to: <id>` from the header lines above `---`. Without a separator the whole file is the body. */
 export function parseOutgoing(text: string): { to: string | null; body: string } {
-  const lines = text.replace(/\r\n/g, '\n').split('\n')
+  // PowerShell's Set-Content -Encoding utf8 writes a byte-order mark.
+  const lines = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').split('\n')
   const sep = lines.findIndex((l) => l.trim() === '---')
   if (sep === -1) return { to: null, body: text }
   let to: string | null = null
