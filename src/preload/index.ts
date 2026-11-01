@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
-import type { HiveMessage, VandelayApi } from '@shared/types'
+import type { AgentConfig, HiveMessage, VandelayApi } from '@shared/types'
 
 function listen<A extends unknown[]>(channel: string, cb: (...args: A) => void): () => void {
   const handler = (_e: IpcRendererEvent, ...args: unknown[]): void => cb(...(args as A))
@@ -12,6 +12,8 @@ const api: VandelayApi = {
   changeWorkspace: () => ipcRenderer.invoke('workspace:change'),
   listAgents: () => ipcRenderer.invoke('agents:list'),
   addAgent: (agent) => ipcRenderer.invoke('agents:add', agent),
+  updateAgent: (id, patch) => ipcRenderer.invoke('agents:update', id, patch),
+  removeAgent: (id) => ipcRenderer.invoke('agents:remove', id),
   startAgent: (id, cols, rows) => ipcRenderer.invoke('agents:start', id, cols, rows),
   stopAgent: (id) => ipcRenderer.invoke('agents:stop', id),
   write: (id, data) => ipcRenderer.send('pty:write', id, data),
@@ -19,7 +21,8 @@ const api: VandelayApi = {
   sendMessage: (to, body) => ipcRenderer.invoke('hive:send', to, body),
   onData: (cb) => listen<[string, string]>('pty:data', cb),
   onExit: (cb) => listen<[string, number]>('pty:exit', cb),
-  onDelivered: (cb) => listen<[HiveMessage]>('hive:delivered', cb)
+  onDelivered: (cb) => listen<[HiveMessage]>('hive:delivered', cb),
+  onRoster: (cb) => listen<[AgentConfig[]]>('agents:roster', cb)
 }
 
 contextBridge.exposeInMainWorld('vandelay', api)

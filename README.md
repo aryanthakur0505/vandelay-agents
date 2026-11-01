@@ -24,6 +24,10 @@ Milestone 1 (MVP):
 - [x] `claude` agents get mail through Claude Code hooks; a full round trip (you → Art → workers →
       Art → you) runs with nothing typed into a terminal.
 - [x] Optional git worktree per agent, desktop notifications for replies, an installer.
+- [x] Specialist roles with templates, a team roster the orchestrator routes by, model and autonomy
+      per agent, edit and let go, temps the orchestrator hires for one job.
+- [x] A control-room theme: robots, circuit traces, data packets, unit cards, status bar, boot
+      sequence (the original office theme is one click away).
 
 Later: voice, Slack, approvals, budgets, semantic memory, walking avatars.
 
@@ -70,7 +74,7 @@ npm run dev     # opens the app; the UI hot-reloads
 | Script | What it does |
 | --- | --- |
 | `npm run dev:watch` | like `dev`, but also restarts the app when `src/main` or `src/preload` change (this restarts your agents) |
-| `npm test` | unit tests (vitest): router, mail hook, claude settings, worktrees |
+| `npm test` | unit tests (vitest): router, team and temps, mail hook, claude settings, worktrees |
 | `npm run typecheck` | TypeScript checks for all three processes |
 | `npm run build` / `npm run preview` | production build, and running it |
 | `npm run dist` | an installer in `release/` (NSIS on Windows, dmg on macOS, AppImage on Linux) |
@@ -96,12 +100,14 @@ in `<workspace>/.vandelay/`:
 
 ```
 .vandelay/
-  agents.json          the roster
+  agents.json          the roster (the app's copy)
+  ROSTER.md            the team as agents read it: ids, names, specialties
   PROTOCOL.md          how agents message each other
   you/                 replies addressed to you
   dead-letter/         messages with an unknown recipient
+  former/              folders of agents you let go
   agents/<id>/
-    inbox/  outbox/  archive/  memory.md
+    inbox/  outbox/  archive/  memory.md  ROLE.md
 ```
 
 To message another agent, an agent writes a `.md` file to its own `outbox/`:
@@ -134,17 +140,56 @@ depends on what it runs:
 
 Each PTY gets `VANDELAY_AGENT`, `VANDELAY_HIVE` and `VANDELAY_AGENT_DIR` in its environment.
 
-### Using real agent CLIs
+### The team
 
-In a new hive, Art Vandelay, Kramer and Elaine all run `claude` if it is on your `PATH`, and
-PowerShell (or your `$SHELL`) otherwise. An existing hive keeps its roster: hire more agents with
-**+ Add agent** and the command `claude`, or edit `command` in `.vandelay/agents.json` and restart
-the app. Sign in once inside an agent's terminal the first time it runs.
+A new hive starts with three agents, all running `claude` if it is on your `PATH` (PowerShell or
+your `$SHELL` otherwise):
 
-Workers get a short `ROLE.md`: do the task, reply to the sender, ask when blocked. The protocol tells
-agents not to answer replies or acknowledgements, so two agents can't thank each other forever.
-Replies addressed to you show in full in the message log, with a desktop notification when the
-window isn't focused.
+| Agent | Job |
+| --- | --- |
+| **Art Vandelay** | Orchestrator. The one you brief. Splits the work, sends each piece to the right agent, reports back to you. |
+| **Kramer** | Fast prototyper: tries ideas quickly and reports what worked. |
+| **Elaine** | Writer: READMEs, docs, changelogs, release notes. |
+
+**Hire more** with **+ Hire**. Start from a role template (George the reviewer, Jerry the front-end
+engineer, Newman the security auditor, Puddy for DevOps, Jackie Chiles for licences, and the two
+above) or write your own specialty. For claude agents you can also choose:
+
+- **Model**: your default, Opus, Sonnet or Haiku. Cheaper models suit simple roles.
+- **Autonomy**: your Claude Code default, read-only (`plan`), ask before every action, edit files
+  freely (`acceptEdits`), or `auto`.
+
+Each agent's specialty goes into its `ROLE.md` and into `.vandelay/ROSTER.md`, which every agent
+reads at start-up, so Art knows who is good at what. Whenever you hire, edit or let go of an agent,
+Art gets a notice from `vandelay` (the app) and doesn't reply to it. **Edit** changes an agent
+(applies on the next **Restart**); **Let go** stops it and moves its folder to `.vandelay/former/`.
+Art can't be let go. Past about eight agents the form warns you: each claude agent uses your
+account's tokens, and more agents mostly add cost, not speed.
+
+**Temps.** For a one-off job Art can hire a temp by writing to `hr`:
+
+```
+to: hr
+---
+hire: Bania
+role: Tells one clean joke.
+model: haiku
+```
+
+HR (the app) replies with the temp's id, the temp appears on the floor, and Art lets it go with
+`fire: <id>` when the job is done. Only the orchestrator can hire temps, at most three at once.
+
+The protocol tells agents not to answer replies or acknowledgements, so two agents can't thank each
+other forever. Replies addressed to you show in full in the comms log, with a desktop notification
+when the window isn't focused. Sign in once inside an agent's terminal the first time it runs.
+
+### Themes
+
+**Control room** (the default) is the Robotics Division: robots at workstations on a glowing grid,
+data packets running along circuit traces, unit cards, a status bar with units online, packets
+routed, uptime and a clock, and a boot sequence (click or press a key to skip). **Office theme** is
+the original warm office with desks and envelopes. Toggle in the header; **Sound** adds a short
+blip for each message (off by default). Both settings are remembered.
 
 ### Git worktrees
 

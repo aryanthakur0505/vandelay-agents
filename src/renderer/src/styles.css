@@ -1,11 +1,39 @@
-:root {
+/* Two themes share one stylesheet: the warm "office" and the neon "control" room. Components only
+   use the tokens below. */
+
+:root,
+:root[data-theme='office'] {
   --bg: #1d1b1a;
   --panel: #262321;
+  --panel-2: #2d2926;
   --line: #3a3532;
   --text: #ece4d8;
   --muted: #9a8f85;
   --accent: #e4572e;
-  --gold: #c9b48a;
+  --accent-text: #ffffff;
+  --highlight: #c9b48a;
+  --term-bg: #141211;
+  --glow: none;
+  --radius: 6px;
+  --ui-font: 'Segoe UI', system-ui, sans-serif;
+  --mono: 'Cascadia Mono', Consolas, monospace;
+}
+
+:root[data-theme='control'] {
+  --bg: #04080d;
+  --panel: #08111b;
+  --panel-2: #0c1826;
+  --line: #143047;
+  --text: #cfe8f5;
+  --muted: #5f86a0;
+  --accent: #3fd0ff;
+  --accent-text: #021018;
+  --highlight: #39ff88;
+  --term-bg: #060b12;
+  --glow: 0 0 10px rgba(63, 208, 255, 0.35);
+  --radius: 2px;
+  --ui-font: 'JetBrains Mono', Consolas, monospace;
+  --mono: 'JetBrains Mono', Consolas, monospace;
 }
 
 * {
@@ -22,8 +50,18 @@ body,
 body {
   background: var(--bg);
   color: var(--text);
-  font: 13px 'Segoe UI', system-ui, sans-serif;
+  font: 13px var(--ui-font);
   overflow: hidden;
+}
+
+/* A faint scanline sheen over the whole control room. */
+:root[data-theme='control'] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 3px);
+  z-index: 50;
 }
 
 button,
@@ -34,7 +72,7 @@ textarea {
   color: var(--text);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius);
 }
 
 button {
@@ -43,12 +81,55 @@ button {
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--gold);
+  border-color: var(--accent);
+  box-shadow: var(--glow);
 }
 
 button:disabled {
   opacity: 0.5;
   cursor: default;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+button.on {
+  border-color: var(--highlight);
+  color: var(--highlight);
+}
+
+:root[data-theme='control'] button,
+:root[data-theme='control'] .panel-title,
+:root[data-theme='control'] .stats dt {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 
 .app {
@@ -57,12 +138,15 @@ button:disabled {
   height: 100%;
 }
 
+/* Header and status bar ------------------------------------------------------------------- */
+
 header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
   padding: 8px 14px;
   border-bottom: 1px solid var(--line);
+  background: var(--panel);
 }
 
 .brand {
@@ -70,59 +154,84 @@ header {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex: 1;
 }
 
 .brand h1 {
   font-size: 15px;
   margin: 0;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.division {
+  color: var(--accent);
+  font-weight: normal;
 }
 
 .brand small {
   color: var(--muted);
   display: block;
-  max-width: 50vw;
+  max-width: 34vw;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .brand small a {
-  color: var(--gold);
+  color: var(--highlight);
 }
 
 .logo {
   display: grid;
   place-items: center;
+  flex: none;
   width: 30px;
   height: 30px;
-  border-radius: 6px;
+  border-radius: var(--radius);
   background: var(--accent);
+  color: var(--accent-text);
   font: bold 18px Georgia, serif;
 }
 
-.add-agent {
+:root[data-theme='control'] .logo {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  box-shadow: var(--glow), inset var(--glow);
+  font: bold 16px var(--mono);
+}
+
+.stats {
   display: flex;
-  gap: 8px;
-  padding: 8px 14px;
-  border-bottom: 1px solid var(--line);
+  gap: 18px;
+  margin: 0;
 }
 
-.add-agent input {
-  flex: 1;
-  padding: 6px 8px;
-}
-
-.add-agent label {
+.stats div {
   display: flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
+  flex-direction: column;
+  align-items: flex-end;
 }
 
-.add-agent input[type='checkbox'] {
-  flex: none;
+.stats dt {
+  color: var(--muted);
+  font-size: 10px;
 }
+
+.stats dd {
+  margin: 0;
+  font: 600 14px var(--mono);
+  color: var(--accent);
+  text-shadow: var(--glow);
+}
+
+.header-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* Layout ----------------------------------------------------------------------------------- */
 
 main {
   flex: 1;
@@ -166,13 +275,25 @@ main {
   padding: 6px 8px;
 }
 
+/* Comms log -------------------------------------------------------------------------------- */
+
+.comms {
+  border-top: 1px solid var(--line);
+}
+
+.panel-title {
+  padding: 5px 10px 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .log {
   list-style: none;
   margin: 0;
-  padding: 6px 10px;
-  height: 120px;
+  padding: 4px 10px 6px;
+  height: 140px;
   overflow-y: auto;
-  border-top: 1px solid var(--line);
+  font: 12px var(--mono);
 }
 
 .log li {
@@ -182,23 +303,30 @@ main {
   text-overflow: ellipsis;
 }
 
+.log .ts {
+  color: var(--muted);
+}
+
+.log li.system b {
+  color: var(--muted);
+}
+
 .log li.to-you {
   margin: 4px 0;
   padding: 6px 8px;
   white-space: normal;
-  border-left: 3px solid var(--gold);
-  background: var(--panel);
-  border-radius: 0 6px 6px 0;
+  border-left: 3px solid var(--highlight);
+  background: var(--panel-2);
+  border-radius: 0 var(--radius) var(--radius) 0;
 }
 
 .log li.to-you p {
   margin: 4px 0 0;
   white-space: pre-wrap;
+  font-family: var(--ui-font);
 }
 
-.muted {
-  color: var(--muted);
-}
+/* Unit cards ------------------------------------------------------------------------------- */
 
 .right {
   display: flex;
@@ -207,62 +335,230 @@ main {
   min-height: 0;
 }
 
-.tabs {
+.units {
   display: flex;
-  gap: 4px;
-  padding: 6px 8px 0;
+  gap: 6px;
+  padding: 8px;
   overflow-x: auto;
+  border-bottom: 1px solid var(--line);
 }
 
-.tab {
+.unit {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 150px;
+  padding: 6px 10px;
+  text-align: left;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-size: 12px !important;
+  background: var(--panel);
+  border-left: 3px solid var(--unit);
+}
+
+.unit.active {
+  border-color: var(--accent);
+  border-left-color: var(--unit);
+  background: var(--panel-2);
+  box-shadow: var(--glow);
+}
+
+.unit-head {
   display: flex;
   align-items: center;
   gap: 6px;
-  border-radius: 6px 6px 0 0;
-  border-bottom: none;
-  background: transparent;
+  width: 100%;
 }
 
-.tab.active {
-  background: var(--panel);
-  border-color: var(--line);
-}
-
-.tab i {
+.unit-head i {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  flex: none;
 }
 
-.tab em {
+.unit-head em {
+  margin-left: auto;
   font-style: normal;
   font-size: 11px;
   background: var(--accent);
+  color: var(--accent-text);
   border-radius: 8px;
   padding: 0 6px;
 }
 
+.unit-meta {
+  color: var(--muted);
+  font: 10px var(--mono);
+  letter-spacing: 0.04em;
+}
+
+/* Terminal --------------------------------------------------------------------------------- */
+
 .term-bar {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  gap: 6px;
   padding: 6px 10px;
   background: var(--panel);
   border-bottom: 1px solid var(--line);
 }
 
-.term-bar code {
+.term-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.term-info > * {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.term-info code {
   color: var(--muted);
+  font-family: var(--mono);
+}
+
+.term-info .role {
+  font-size: 12px;
+}
+
+.term-info .task {
+  font-size: 11px;
+  color: var(--highlight);
 }
 
 .terminals {
   position: relative;
   flex: 1;
   min-height: 0;
-  background: #141211;
+  background: var(--term-bg);
 }
 
 .terminal-host {
   position: absolute;
   inset: 6px;
+}
+
+/* Hire / edit form ------------------------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--glow);
+}
+
+.agent-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding: 18px;
+}
+
+.agent-form h2 {
+  margin: 0 0 4px;
+  font-size: 16px;
+  color: var(--accent);
+}
+
+.agent-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.agent-form input,
+.agent-form select,
+.agent-form textarea {
+  padding: 6px 8px;
+  color: var(--text);
+}
+
+.agent-form textarea {
+  resize: vertical;
+}
+
+.agent-form .row {
+  display: flex;
+  gap: 10px;
+}
+
+.agent-form .row label {
+  flex: 1;
+}
+
+.agent-form label.check {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+}
+
+.agent-form .hint,
+.agent-form .warn {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.agent-form .warn {
+  color: #ffb000;
+}
+
+.agent-form .actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Boot sequence ---------------------------------------------------------------------------- */
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  background: #020508;
+  cursor: pointer;
+}
+
+.boot pre {
+  margin: 0;
+  min-width: 420px;
+  font: 13px/1.6 var(--mono);
+  color: #3fd0ff;
+  text-shadow: 0 0 8px rgba(63, 208, 255, 0.6);
+}
+
+.boot .cursor {
+  animation: blink 0.8s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
 }

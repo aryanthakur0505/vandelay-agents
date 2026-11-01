@@ -2,7 +2,7 @@ import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { claudeHookArgs, stopOrphans } from '../src/main/claudeHooks'
+import { claudeArgs, claudeHookArgs, stopOrphans } from '../src/main/claudeHooks'
 import { ensureWorktree } from '../src/main/worktrees'
 import { scratch } from './helpers'
 
@@ -59,5 +59,19 @@ describe('claudeHookArgs', () => {
     expect(rule).toMatch(/^Edit\(\/\/.*\/agents\/kramer\/\*\*\)$/)
     expect(rule).not.toContain('\\')
     expect(existsSync(join(root, 'bin', 'claude-mail-hook.cjs'))).toBe(true)
+  })
+})
+
+describe('claudeArgs', () => {
+  const base = { id: 'g', name: 'G', command: 'claude', args: [], cwd: '', color: '' }
+
+  it('passes nothing for the defaults', () => {
+    expect(claudeArgs(base)).toEqual([])
+    expect(claudeArgs({ ...base, autonomy: 'inherit' })).toEqual([])
+  })
+
+  it('maps model and autonomy to flags', () => {
+    expect(claudeArgs({ ...base, model: 'haiku', autonomy: 'read-only' })).toEqual(['--model', 'haiku', '--permission-mode', 'plan'])
+    expect(claudeArgs({ ...base, autonomy: 'edits' })).toEqual(['--permission-mode', 'acceptEdits'])
   })
 })

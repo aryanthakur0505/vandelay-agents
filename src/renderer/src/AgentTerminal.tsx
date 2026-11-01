@@ -2,26 +2,28 @@ import { useEffect, useRef } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import type { AgentConfig } from '@shared/types'
+import { terminalTheme, type Theme } from './status'
 
 interface Props {
   agent: AgentConfig
   visible: boolean
   /** Bumped by the parent to respawn the process after it exits. */
   generation: number
+  theme: Theme
 }
 
-export function AgentTerminal({ agent, visible, generation }: Props): React.JSX.Element {
+export function AgentTerminal({ agent, visible, generation, theme }: Props): React.JSX.Element {
   const host = useRef<HTMLDivElement>(null)
   const term = useRef<Terminal | null>(null)
   const fit = useRef<FitAddon | null>(null)
 
   useEffect(() => {
     const t = new Terminal({
-      fontFamily: 'Cascadia Mono, Consolas, Menlo, monospace',
+      fontFamily: "'JetBrains Mono', 'Cascadia Mono', Consolas, Menlo, monospace",
       fontSize: 13,
       cursorBlink: true,
       scrollback: 5000,
-      theme: { background: '#141211', foreground: '#ece4d8', cursor: agent.color }
+      theme: terminalTheme(theme, agent.color)
     })
     const f = new FitAddon()
     t.loadAddon(f)
@@ -60,6 +62,10 @@ export function AgentTerminal({ agent, visible, generation }: Props): React.JSX.
   useEffect(() => {
     if (visible) term.current?.focus()
   }, [visible])
+
+  useEffect(() => {
+    if (term.current) term.current.options.theme = terminalTheme(theme, agent.color)
+  }, [theme, agent.color])
 
   return <div ref={host} className="terminal-host" style={{ visibility: visible ? 'visible' : 'hidden' }} />
 }

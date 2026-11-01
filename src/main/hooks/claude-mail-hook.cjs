@@ -45,6 +45,7 @@ function context() {
     `Start by reading your memory at ${path.join(agentDir, 'memory.md')}.`,
     '',
     read(path.join(hiveRoot, 'PROTOCOL.md')),
+    read(path.join(hiveRoot, 'ROSTER.md')),
     role
   ].join('\n')
   process.stdout.write(JSON.stringify({ hookSpecificOutput: { hookEventName: 'SessionStart', additionalContext: text } }))

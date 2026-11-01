@@ -1,8 +1,30 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AgentConfig, HiveMessage } from '@shared/types'
+import { AgentForm } from './AgentForm'
 import { AgentTerminal } from './AgentTerminal'
+import { BootScreen } from './BootScreen'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
-import { STATUS_COLOR, WORKING_WINDOW_MS, type AgentStatus } from './status'
+import { beep, usePref } from './prefs'
+import { STATUS_LABEL, statusColors, unitTag, WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
+
+interface Traffic {
+  sent: number
+  received: number
+  /** The latest thing this agent was asked to do. */
+  task?: string
+}
+
+const APP_START = Date.now()
+
+function clock(ms: number): string {
+  const s = Math.floor(ms / 1000)
+  const pad = (n: number): string => String(n).padStart(2, '0')
+  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`
+}
+
+function time(at: number): string {
+  return new Date(at).toLocaleTimeString([], { hour12: false })
+}
 
 export function App(): React.JSX.Element {
   const [workspace, setWorkspace] = useState('')
@@ -12,11 +34,24 @@ export function App(): React.JSX.Element {
   const [unread, setUnread] = useState<Record<string, number>>({})
   const [flights, setFlights] = useState<Flight[]>([])
   const [log, setLog] = useState<HiveMessage[]>([])
+  const [routed, setRouted] = useState(0)
+  const [traffic, setTraffic] = useState<Record<string, Traffic>>({})
   const [generations, setGenerations] = useState<Record<string, number>>({})
-  const [adding, setAdding] = useState(false)
+  const [form, setForm] = useState<{ edit?: AgentConfig } | null>(null)
+  const [now, setNow] = useState(Date.now())
+  const [theme, setTheme] = usePref<Theme>('theme', 'control')
+  const [sound, setSound] = usePref<boolean>('sound', false)
+  const [booting, setBooting] = useState(theme === 'control')
 
   const lastOutput = useRef<Record<string, number>>({})
+  const upSince = useRef<Record<string, number>>({})
   const exited = useRef<Set<string>>(new Set())
+  const soundRef = useRef(sound)
+  soundRef.current = sound
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+  }, [theme])
 
   useEffect(() => {
     window.vandelay.workspace().then(setWorkspace)
@@ -24,29 +59,48 @@ export function App(): React.JSX.Element {
       setAgents(list)
       setSelected(list[0]?.id ?? null)
     })
+    const offRoster = window.vandelay.onRoster((list) => {
+      setAgents(list)
+      setSelected((s) => (s && list.some((a) => a.id === s) ? s : (list[0]?.id ?? null)))
+    })
     const offData = window.vandelay.onData((id) => {
       lastOutput.current[id] = Date.now()
+      upSince.current[id] ??= Date.now()
       exited.current.delete(id)
     })
-    const offExit = window.vandelay.onExit((id) => exited.current.add(id))
+    const offExit = window.vandelay.onExit((id) => {
+      exited.current.add(id)
+      delete upSince.current[id]
+    })
     const offDelivered = window.vandelay.onDelivered((msg) => {
-      setLog((l) => [msg, ...l].slice(0, 50))
+      setLog((l) => [msg, ...l].slice(0, 200))
+      setRouted((n) => n + 1)
       setUnread((u) => ({ ...u, [msg.to]: (u[msg.to] ?? 0) + 1 }))
+      // Notices from the app aren't work, so they don't count as the agent's latest task.
+      const task = msg.from === 'vandelay' ? undefined : msg.body.split('\n')[0]
+      setTraffic((t) => ({
+        ...t,
+        [msg.from]: { ...t[msg.from], sent: (t[msg.from]?.sent ?? 0) + 1, received: t[msg.from]?.received ?? 0 },
+        [msg.to]: { ...t[msg.to], sent: t[msg.to]?.sent ?? 0, received: (t[msg.to]?.received ?? 0) + 1, task: task ?? t[msg.to]?.task }
+      }))
       setFlights((f) => [...f.filter((x) => Date.now() - x.start < FLIGHT_MS), { from: msg.from, to: msg.to, start: Date.now() }])
+      if (soundRef.current) beep(msg.to === 'you' ? 1320 : 880)
     })
     const tick = setInterval(() => {
-      const now = Date.now()
+      const t = Date.now()
+      setNow(t)
       setStatuses((prev) => {
         const next: Record<string, AgentStatus> = {}
         for (const id of Object.keys({ ...prev, ...lastOutput.current })) {
           if (exited.current.has(id)) next[id] = 'exited'
           else if (!lastOutput.current[id]) next[id] = 'starting'
-          else next[id] = now - lastOutput.current[id] < WORKING_WINDOW_MS ? 'working' : 'idle'
+          else next[id] = t - lastOutput.current[id] < WORKING_WINDOW_MS ? 'working' : 'idle'
         }
         return next
       })
     }, 400)
     return () => {
+      offRoster()
       offData()
       offExit()
       offDelivered()
@@ -63,18 +117,34 @@ export function App(): React.JSX.Element {
     await window.vandelay.stopAgent(id)
     exited.current.delete(id)
     delete lastOutput.current[id]
+    delete upSince.current[id]
     setGenerations((g) => ({ ...g, [id]: (g[id] ?? 0) + 1 }))
   }
 
+  const fire = async (a: AgentConfig): Promise<void> => {
+    if (!confirm(`Let ${a.name} go? Their terminal stops and their folder moves to .vandelay/former/.`)) return
+    await window.vandelay.removeAgent(a.id)
+  }
+
+  const colors = statusColors(theme)
   const current = agents.find((a) => a.id === selected)
+  const online = agents.filter((a) => {
+    const s = statuses[a.id]
+    return s === 'working' || s === 'idle'
+  }).length
+  const name = (id: string): string => (id === 'you' ? 'YOU' : id === 'vandelay' ? 'SYSTEM' : id.toUpperCase())
 
   return (
     <div className="app">
+      {booting && <BootScreen agents={agents} onDone={() => setBooting(false)} />}
+
       <header>
         <div className="brand">
           <span className="logo">V</span>
           <div>
-            <h1>Vandelay Agents</h1>
+            <h1>
+              Vandelay Agents{theme === 'control' && <span className="division"> // Robotics Division</span>}
+            </h1>
             <small title="Choose another folder (restarts the app)">
               {workspace}{' '}
               <a href="#" onClick={(e) => (e.preventDefault(), window.vandelay.changeWorkspace())}>
@@ -83,64 +153,123 @@ export function App(): React.JSX.Element {
             </small>
           </div>
         </div>
-        <button onClick={() => setAdding((v) => !v)}>{adding ? 'Cancel' : '+ Add agent'}</button>
+        <dl className="stats">
+          <div>
+            <dt>Units online</dt>
+            <dd>
+              {online}/{agents.length}
+            </dd>
+          </div>
+          <div>
+            <dt>Packets routed</dt>
+            <dd>{routed}</dd>
+          </div>
+          <div>
+            <dt>Uptime</dt>
+            <dd>{clock(now - APP_START)}</dd>
+          </div>
+          <div>
+            <dt>Clock</dt>
+            <dd>{time(now)}</dd>
+          </div>
+        </dl>
+        <div className="header-actions">
+          <button title="Sound on new messages" className={sound ? 'on' : ''} onClick={() => setSound(!sound)}>
+            {sound ? 'Sound on' : 'Sound off'}
+          </button>
+          <button title="Switch theme" onClick={() => setTheme(theme === 'control' ? 'office' : 'control')}>
+            {theme === 'control' ? 'Office theme' : 'Control room'}
+          </button>
+          <button className="primary" onClick={() => setForm({})}>
+            + Hire
+          </button>
+        </div>
       </header>
 
-      {adding && (
-        <AddAgentForm
-          onAdd={async (input) => {
-            const agent = await window.vandelay.addAgent(input)
-            setAgents((a) => [...a, agent])
-            select(agent.id)
-            setAdding(false)
+      {form && (
+        <AgentForm
+          agent={form.edit}
+          teamSize={agents.length}
+          onCancel={() => setForm(null)}
+          onSave={async (input) => {
+            if (form.edit) await window.vandelay.updateAgent(form.edit.id, input)
+            else select((await window.vandelay.addAgent(input)).id)
+            setForm(null)
           }}
         />
       )}
 
       <main>
         <section className="left">
-          <Floor agents={agents} statuses={statuses} unread={unread} flights={flights} selected={selected} onSelect={select} />
+          <Floor agents={agents} statuses={statuses} unread={unread} flights={flights} selected={selected} theme={theme} onSelect={select} />
           <Composer agents={agents} defaultTo={agents.find((a) => a.orchestrator)?.id ?? agents[0]?.id ?? ''} />
-          <ul className="log">
-            {log.length === 0 && <li className="muted">No messages yet. Brief Art Vandelay above.</li>}
-            {log.map((m) =>
-              m.to === 'you' ? (
-                // Replies to the human are the point of the whole thing, so show them in full.
-                <li key={m.file} className="to-you">
-                  <b>{m.from}</b> → <b>you</b>
-                  <p>{m.body}</p>
-                </li>
-              ) : (
-                <li key={m.file} title={m.body}>
-                  <b>{m.from}</b> → <b>{m.to}</b> <span className="muted">{m.body.slice(0, 80)}</span>
-                </li>
-              )
-            )}
-          </ul>
+          <div className="comms">
+            <div className="panel-title">Comms</div>
+            <ul className="log">
+              {log.length === 0 && <li className="muted">No traffic yet. Brief {agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} above.</li>}
+              {log.map((m) =>
+                m.to === 'you' ? (
+                  // Replies to the human are the point of the whole thing, so show them in full.
+                  <li key={m.file} className="to-you">
+                    <span className="ts">[{time(m.at)}]</span> <b>{name(m.from)}</b> ▸ <b>YOU</b>
+                    <p>{m.body}</p>
+                  </li>
+                ) : (
+                  <li key={m.file} title={m.body} className={m.from === 'vandelay' ? 'system' : ''}>
+                    <span className="ts">[{time(m.at)}]</span> <b>{name(m.from)}</b> ▸ <b>{name(m.to)}</b>{' '}
+                    <span className="muted">{m.body.slice(0, 90)}</span>
+                  </li>
+                )
+              )}
+            </ul>
+          </div>
         </section>
 
         <section className="right">
-          <nav className="tabs">
-            {agents.map((a) => (
-              <button key={a.id} className={a.id === selected ? 'tab active' : 'tab'} onClick={() => select(a.id)}>
-                <i style={{ background: STATUS_COLOR[statuses[a.id] ?? 'starting'] }} />
-                {a.name}
-                {(unread[a.id] ?? 0) > 0 && <em>{unread[a.id]}</em>}
-              </button>
-            ))}
+          <nav className="units">
+            {agents.map((a, i) => {
+              const s = statuses[a.id] ?? 'starting'
+              const t = traffic[a.id]
+              return (
+                <button key={a.id} className={a.id === selected ? 'unit active' : 'unit'} onClick={() => select(a.id)} style={{ '--unit': a.color } as React.CSSProperties}>
+                  <span className="unit-head">
+                    <i style={{ background: colors[s], boxShadow: `0 0 6px ${colors[s]}` }} />
+                    <b>{a.name}</b>
+                    {(unread[a.id] ?? 0) > 0 && <em>{unread[a.id]}</em>}
+                  </span>
+                  <span className="unit-meta">
+                    {unitTag(i)} · {STATUS_LABEL[s]}
+                    {upSince.current[a.id] && s !== 'exited' ? ` · ${clock(now - upSince.current[a.id])}` : ''}
+                  </span>
+                  <span className="unit-meta">
+                    {a.orchestrator ? 'ORCHESTRATOR' : a.temp ? 'TEMP' : (a.model ?? 'default').toUpperCase()} · ↑{t?.sent ?? 0} ↓{t?.received ?? 0}
+                  </span>
+                </button>
+              )
+            })}
           </nav>
           {current && (
             <div className="term-bar">
-              <code>
-                {current.command} {current.args.join(' ')}
-                {current.worktree && <span className="muted"> · worktree vandelay/{current.id}</span>}
-              </code>
+              <div className="term-info">
+                <code>
+                  {current.command} {current.args.join(' ')}
+                  {current.model && <span className="muted"> · {current.model}</span>}
+                  {current.autonomy && current.autonomy !== 'inherit' && <span className="muted"> · {current.autonomy}</span>}
+                  {current.worktree && <span className="muted"> · worktree vandelay/{current.id}</span>}
+                </code>
+                <span className="role" title={current.role}>
+                  {current.orchestrator ? 'Orchestrator: routes your briefs to the team.' : current.role || 'No specialty set.'}
+                </span>
+                {traffic[current.id]?.task && <span className="task">Last task: {traffic[current.id]!.task}</span>}
+              </div>
+              <button onClick={() => setForm({ edit: current })}>Edit</button>
+              {!current.orchestrator && <button onClick={() => fire(current)}>Let go</button>}
               <button onClick={() => restart(current.id)}>Restart</button>
             </div>
           )}
           <div className="terminals">
             {agents.map((a) => (
-              <AgentTerminal key={a.id} agent={a} visible={a.id === selected} generation={generations[a.id] ?? 0} />
+              <AgentTerminal key={a.id} agent={a} visible={a.id === selected} generation={generations[a.id] ?? 0} theme={theme} />
             ))}
           </div>
         </section>
@@ -152,7 +281,7 @@ export function App(): React.JSX.Element {
 function Composer({ agents, defaultTo }: { agents: AgentConfig[]; defaultTo: string }): React.JSX.Element {
   const [to, setTo] = useState('')
   const [body, setBody] = useState('')
-  const target = to || defaultTo
+  const target = agents.some((a) => a.id === to) ? to : defaultTo
 
   const send = async (): Promise<void> => {
     if (!body.trim() || !target) return
@@ -171,41 +300,15 @@ function Composer({ agents, defaultTo }: { agents: AgentConfig[]; defaultTo: str
       </select>
       <textarea
         value={body}
-        placeholder="Write a message to drop in their inbox (Ctrl+Enter to send)"
+        placeholder="Brief an agent (Ctrl+Enter to send)"
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send()
         }}
       />
-      <button onClick={send} disabled={!body.trim()}>
+      <button className="primary" onClick={send} disabled={!body.trim()}>
         Send
       </button>
     </div>
-  )
-}
-
-function AddAgentForm({ onAdd }: { onAdd(input: Omit<AgentConfig, 'id' | 'color'>): void }): React.JSX.Element {
-  const [name, setName] = useState('')
-  const [command, setCommand] = useState('claude')
-  const [cwd, setCwd] = useState('')
-  const [worktree, setWorktree] = useState(false)
-
-  return (
-    <form
-      className="add-agent"
-      onSubmit={(e) => {
-        e.preventDefault()
-        const [cmd, ...args] = command.trim().split(/\s+/)
-        if (name.trim() && cmd) onAdd({ name: name.trim(), command: cmd, args, cwd: cwd.trim(), ...(worktree && { worktree }) })
-      }}
-    >
-      <input autoFocus placeholder="Name (e.g. George)" value={name} onChange={(e) => setName(e.target.value)} />
-      <input placeholder="Command (claude, codex, gemini, powershell.exe…)" value={command} onChange={(e) => setCommand(e.target.value)} />
-      <input placeholder="Working folder (blank = workspace)" value={cwd} onChange={(e) => setCwd(e.target.value)} />
-      <label title="Work on branch vandelay/<id> in a git worktree of its own, so it can't overwrite other agents' edits">
-        <input type="checkbox" checked={worktree} onChange={(e) => setWorktree(e.target.checked)} /> Own git worktree
-      </label>
-      <button type="submit">Hire</button>
-    </form>
   )
 }

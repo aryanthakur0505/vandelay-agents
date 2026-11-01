@@ -1,8 +1,8 @@
 import { existsSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
-import type { AgentConfig, HiveMessage } from '@shared/types'
-import { claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
+import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
+import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
 import { isShell, Terminals } from './terminals'
 import { askForWorkspace, chooseWorkspace, relaunchArgs } from './workspace'
@@ -122,8 +122,16 @@ function wire(): void {
     app.relaunch({ args: relaunchArgs(dir) })
     app.exit(0)
   })
+  hive.on('roster', (agents: AgentConfig[]) => send('agents:roster', agents))
+  hive.on('removed', (id: string) => {
+    terminals.stop(id)
+    hooked.delete(id)
+  })
+
   ipcMain.handle('agents:list', () => hive.list())
-  ipcMain.handle('agents:add', (_e, input: Omit<AgentConfig, 'id' | 'color'>) => hive.add(input))
+  ipcMain.handle('agents:add', (_e, input: AgentInput) => hive.add(input))
+  ipcMain.handle('agents:update', (_e, id: string, patch: Partial<AgentInput>) => hive.update(id, patch))
+  ipcMain.handle('agents:remove', (_e, id: string) => hive.remove(id))
   const starting = new Set<string>()
   ipcMain.handle('agents:start', async (_e, id: string, cols: number, rows: number) => {
     const agent = hive.get(id)
@@ -138,7 +146,8 @@ function wire(): void {
       const hookArgs = claude ? claudeHookArgs(hive.root, agent, hive.agentDir(id)) : null
       if (hookArgs) hooked.add(id)
       else hooked.delete(id)
-      terminals.start(agent, cwd, agentEnv(agent), cols, rows, hookArgs ?? [])
+      const extra = claude ? [...claudeArgs(agent), ...(hookArgs ?? [])] : []
+      terminals.start(agent, cwd, agentEnv(agent), cols, rows, extra)
     } finally {
       starting.delete(id)
     }

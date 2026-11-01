@@ -1,7 +1,7 @@
 import { execFile } from 'node:child_process'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import type { AgentConfig } from '@shared/types'
+import type { AgentConfig, Autonomy } from '@shared/types'
 import hookScript from './hooks/claude-mail-hook.cjs?raw'
 import { findExecutable } from './terminals'
 
@@ -10,6 +10,23 @@ const WATCH_TIMEOUT_S = 86400
 
 export function isClaude(command: string): boolean {
   return basename(command).toLowerCase().replace(/\.(exe|cmd)$/, '') === 'claude'
+}
+
+const PERMISSION_MODE: Record<Autonomy, string | null> = {
+  inherit: null,
+  'read-only': 'plan',
+  ask: 'manual',
+  edits: 'acceptEdits',
+  auto: 'auto'
+}
+
+/** The model and autonomy settings as claude CLI flags. */
+export function claudeArgs(agent: AgentConfig): string[] {
+  const args: string[] = []
+  if (agent.model) args.push('--model', agent.model)
+  const mode = PERMISSION_MODE[agent.autonomy ?? 'inherit']
+  if (mode) args.push('--permission-mode', mode)
+  return args
 }
 
 /**

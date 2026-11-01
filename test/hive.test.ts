@@ -85,3 +85,77 @@ describe('Hive', () => {
     expect(readdirSync(join(h.agentDir('kramer'), 'outbox'))).toEqual(['new.md'])
   })
 })
+
+describe('team management', () => {
+  let hive: Hive | undefined
+  afterEach(() => hive?.stopRouter())
+
+  function makeHive(): { h: Hive; mail: string[] } {
+    hive = new Hive(scratch())
+    hive.init()
+    const mail: string[] = []
+    hive.on('delivered', (m) => mail.push(`${m.from}->${m.to}: ${m.body}`))
+    return { h: hive, mail }
+  }
+
+  function post(h: Hive, from: string, text: string): void {
+    const file = join(h.agentDir(from), 'outbox', `${Date.now()}-${Math.random()}.md`)
+    writeFileSync(file, text)
+    const past = new Date(Date.now() - 5000)
+    utimesSync(file, past, past)
+  }
+
+  it('writes a roster with every agent and their specialty', () => {
+    const { h } = makeHive()
+    const roster = readFileSync(join(h.root, 'ROSTER.md'), 'utf8')
+    expect(roster).toContain('`art` **Art Vandelay**: Orchestrator')
+    expect(roster).toMatch(/`kramer` \*\*Kramer\*\*: Fast prototyper/)
+    expect(readFileSync(join(h.agentDir('kramer'), 'ROLE.md'), 'utf8')).toContain('## Your specialty')
+  })
+
+  it('tells the orchestrator about hires, specialty changes and departures', () => {
+    const { h, mail } = makeHive()
+    const george = h.add({ name: 'George', command: 'claude', args: [], cwd: '', role: 'Reviewer.' })
+    h.update(george.id, { role: 'QA lead.' })
+    h.remove(george.id)
+    expect(mail).toEqual([
+      'vandelay->art: New hire: `george` George. Reviewer.',
+      'vandelay->art: `george` George has a new specialty: QA lead.',
+      'vandelay->art: `george` George has left the team.'
+    ])
+    expect(h.get('george')).toBeUndefined()
+    expect(readFileSync(join(h.root, 'ROSTER.md'), 'utf8')).not.toContain('george')
+  })
+
+  it('never lets the orchestrator go, or hands out reserved ids', () => {
+    const { h } = makeHive()
+    expect(() => h.remove('art')).toThrow()
+    expect(h.add({ name: 'HR', command: 'x', args: [], cwd: '' }).id).toBe('hr-2')
+    expect(h.add({ name: 'Vandelay', command: 'x', args: [], cwd: '' }).id).toBe('vandelay-2')
+  })
+
+  it('lets the orchestrator hire and fire temps through HR', async () => {
+    const { h, mail } = makeHive()
+    post(h, 'art', 'to: hr\n---\nhire: Bania\nrole: Tells jokes.\nmodel: haiku')
+    h.startRouter(50)
+    await until(() => mail.length > 0)
+    expect(mail[0]).toMatch(/^vandelay->art: Hired temp `bania`/)
+    // Temps run whatever the orchestrator runs (claude here, a shell on machines without it).
+    expect(h.get('bania')).toMatchObject({ temp: true, hiredBy: 'art', role: 'Tells jokes.', model: 'haiku', command: h.get('art')!.command })
+    post(h, 'art', 'to: hr\n---\nfire: bania')
+    await until(() => mail.length > 1)
+    expect(mail[1]).toBe('vandelay->art: Let go of temp `bania`.')
+    expect(h.get('bania')).toBeUndefined()
+  })
+
+  it('refuses temps from workers and beyond the limit', async () => {
+    const { h, mail } = makeHive()
+    post(h, 'kramer', 'to: hr\n---\nhire: Bob')
+    for (const n of ['A', 'B', 'C', 'D']) post(h, 'art', `to: hr\n---\nhire: Temp ${n}`)
+    h.startRouter(50)
+    await until(() => mail.length >= 5)
+    expect(mail).toContain('vandelay->kramer: Only the orchestrator can hire or let go of temps.')
+    expect(mail.filter((m) => m.includes('Hired temp'))).toHaveLength(3)
+    expect(mail.some((m) => m.includes('You already have 3 temps'))).toBe(true)
+  })
+})
