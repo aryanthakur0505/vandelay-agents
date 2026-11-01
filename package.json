@@ -5,6 +5,12 @@
   "description": "Vandelay Agents: run terminal coding CLIs as a team of agents on a 2D office floor.",
   "main": "./out/main/index.js",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aryanthakur0505/vandelay-agents.git"
+  },
+  "homepage": "https://github.com/aryanthakur0505/vandelay-agents#readme",
+  "bugs": "https://github.com/aryanthakur0505/vandelay-agents/issues",
   "scripts": {
     "dev": "electron-vite dev",
     "dev:watch": "electron-vite dev --watch",
