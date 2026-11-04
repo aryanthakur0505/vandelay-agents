@@ -7,6 +7,10 @@
 - Several messages from one sender in the same millisecond no longer overwrite each other.
 - A broken `agents.json` is kept as a copy and the app starts with the default team.
 - The window opens in the control-room colors, and clicking a reply notification focuses it.
+- Keyboard: Alt+1…9 switches agents, Ctrl+Shift+C/V copies and pastes in terminals, Esc closes
+  the hire form, and focus is outlined.
+- Unread mail shows in the window title; the composer names who you're briefing.
+- Reduced-motion systems skip the boot sequence, scanlines and blinking cursor.
 
 ## 0.2.0 (2026-11-01)
 

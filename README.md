@@ -208,6 +208,16 @@ routed, uptime and a clock, and a boot sequence (click or press a key to skip). 
 the original warm office with desks and envelopes. Toggle in the header; **Sound** adds a short
 blip for each message (off by default). Both settings are remembered.
 
+### Keyboard shortcuts
+
+| Keys | Does |
+| --- | --- |
+| Ctrl+Enter | send the brief in the composer |
+| Alt+1 … Alt+9 | jump to the first nine agents |
+| Ctrl+Shift+C / Ctrl+Shift+V | copy / paste in an agent's terminal (Ctrl+C still interrupts the agent) |
+| Esc | close the hire or edit form |
+| any key or click | skip the boot sequence |
+
 ### Git worktrees
 
 Agents that edit code in the same folder can overwrite each other. Tick **Own git worktree** when
