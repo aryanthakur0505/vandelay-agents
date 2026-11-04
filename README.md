@@ -57,7 +57,7 @@ choose. Point it at a project you're happy for them to edit.
 
 ### Prerequisites
 
-- Node.js 18 or newer, and npm.
+- Node.js 20.19+ or 22.12+ (what Vite 8 needs), and npm. `.nvmrc` pins 22.
 - `node-pty` 1.1 ships N-API prebuilds for Windows (x64, arm64) and macOS, so no compiler is needed
   there. On Linux, or if the prebuild fails to load, install a C/C++ toolchain (`build-essential` and
   Python 3; on Windows, Visual Studio Build Tools with "Desktop development with C++").
