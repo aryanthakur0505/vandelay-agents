@@ -159,18 +159,23 @@ Each PTY gets `VANDELAY_AGENT`, `VANDELAY_HIVE` and `VANDELAY_AGENT_DIR` in its 
 
 ### The team
 
-A new hive starts with three agents, all running `claude` if it is on your `PATH` (PowerShell or
-your `$SHELL` otherwise):
+A new hive starts with the full staff of eight, all running `claude` if it is on your `PATH`
+(PowerShell or your `$SHELL` otherwise):
 
-| Agent | Job |
-| --- | --- |
-| **Art Vandelay** | Orchestrator. The one you brief. Splits the work, sends each piece to the right agent, reports back to you. |
-| **Kramer** | Fast prototyper: tries ideas quickly and reports what worked. |
-| **Elaine** | Writer: READMEs, docs, changelogs, release notes. |
+| Agent | Job | Model, autonomy |
+| --- | --- | --- |
+| **Art Vandelay** | Orchestrator. The one you brief. Splits the work, sends each piece to the right agent, reports back to you. | your default |
+| **Kramer** | Fast prototyper: tries ideas quickly and reports what worked. | Sonnet |
+| **Elaine** | Writer: READMEs, docs, changelogs, release notes. | Sonnet |
+| **George** | Code reviewer and QA: reads diffs, runs tests, hunts bugs. | Sonnet |
+| **Jerry** | Front-end and UI engineer. | Sonnet |
+| **Newman** | Security auditor: vulnerabilities, leaked secrets, unsafe defaults. | Sonnet, read-only |
+| **Puddy** | DevOps: CI, builds, packaging, releases. | Sonnet |
+| **Jackie Chiles** | Licences and dependencies. | Haiku, read-only |
 
-**Hire more** with **+ Hire**. Start from a role template (George the reviewer, Jerry the front-end
-engineer, Newman the security auditor, Puddy for DevOps, Jackie Chiles for licences, and the two
-above) or write your own specialty. For claude agents you can also choose:
+An idle agent costs nothing; tokens are spent only when Art hands it work. **Let go** of anyone you
+don't need, or **hire** more with **+ Hire**: start from a role template or write your own
+specialty. For claude agents you can also choose:
 
 - **Model**: your default, Opus, Sonnet or Haiku. Cheaper models suit simple roles.
 - **Autonomy**: your Claude Code default, read-only (`plan`), ask before every action, edit files

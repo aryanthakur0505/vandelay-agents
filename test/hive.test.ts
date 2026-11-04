@@ -26,7 +26,7 @@ describe('Hive', () => {
   let hive: Hive | undefined
   afterEach(() => hive?.stopRouter())
 
-  /** A new hive comes with Art, Kramer and Elaine. */
+  /** A new hive comes with Art and the full staff. */
   function makeHive(): Hive {
     hive = new Hive(scratch())
     hive.init()
@@ -54,7 +54,7 @@ describe('Hive', () => {
     writeFileSync(join(root, '.vandelay', 'agents.json'), '[{ "id": "art", oops')
     hive = new Hive(root)
     hive.init()
-    expect(hive.list().map((a) => a.id)).toEqual(['art', 'kramer', 'elaine'])
+    expect(hive.list().map((a) => a.id)).toEqual(['art', 'kramer', 'elaine', 'george', 'jerry', 'newman', 'puddy', 'jackie-chiles'])
     expect(readdirSync(hive.root).some((f) => f.startsWith('agents.json.broken-'))).toBe(true)
   })
 
@@ -86,7 +86,7 @@ describe('Hive', () => {
 
   it('moves mail for unknown agents to dead-letter', async () => {
     const h = makeHive()
-    post(h, 'kramer', 'lost.md', 'to: newman\n---\nhello')
+    post(h, 'kramer', 'lost.md', 'to: bania\n---\nhello')
     h.startRouter(50)
     await until(() => readdirSync(join(h.root, 'dead-letter')).length > 0)
   })
@@ -95,12 +95,12 @@ describe('Hive', () => {
     const h = makeHive()
     const notices: string[] = []
     h.on('delivered', (m) => notices.push(`${m.from}->${m.to}: ${m.body}`))
-    post(h, 'kramer', 'lost.md', 'to: newman\n---\nhello')
+    post(h, 'kramer', 'lost.md', 'to: bania\n---\nhello')
     post(h, 'kramer', 'blank.md', 'hello with no header')
     h.startRouter(50)
     await until(() => notices.length >= 2)
     expect(notices.every((n) => n.startsWith('vandelay->kramer: Your message'))).toBe(true)
-    expect(notices.some((n) => n.includes('no agent `newman`'))).toBe(true)
+    expect(notices.some((n) => n.includes('no agent `bania`'))).toBe(true)
     expect(notices.some((n) => n.includes('no `to:` line'))).toBe(true)
   })
 
@@ -164,10 +164,10 @@ describe('team management', () => {
 
   it('notes temps, models and read-only agents in the roster and their roles', () => {
     const { h } = makeHive()
-    h.add({ name: 'Newman', command: 'claude', args: [], cwd: '', role: 'Audits.', model: 'haiku', autonomy: 'read-only' })
+    h.add({ name: 'Babu', command: 'claude', args: [], cwd: '', role: 'Audits.', model: 'haiku', autonomy: 'read-only' })
     h.add({ name: 'Bania', command: 'claude', args: [], cwd: '', temp: true, hiredBy: 'art', worktree: true })
     const roster = readFileSync(join(h.root, 'ROSTER.md'), 'utf8')
-    expect(roster).toContain('`newman` **Newman**: Audits. _(model haiku, read-only)_')
+    expect(roster).toContain('`babu` **Babu**: Audits. _(model haiku, read-only)_')
     expect(roster).toContain('_(temp hired by art)_')
     const role = readFileSync(join(h.agentDir('bania'), 'ROLE.md'), 'utf8')
     expect(role).toContain('You are a temp, hired by `art`')
@@ -176,16 +176,16 @@ describe('team management', () => {
 
   it('tells the orchestrator about hires, specialty changes and departures', () => {
     const { h, mail } = makeHive()
-    const george = h.add({ name: 'George', command: 'claude', args: [], cwd: '', role: 'Reviewer.' })
-    h.update(george.id, { role: 'QA lead.' })
-    h.remove(george.id)
+    const lloyd = h.add({ name: 'Lloyd', command: 'claude', args: [], cwd: '', role: 'Reviewer.' })
+    h.update(lloyd.id, { role: 'QA lead.' })
+    h.remove(lloyd.id)
     expect(mail).toEqual([
-      'vandelay->art: New hire: `george` George. Reviewer.',
-      'vandelay->art: `george` George has a new specialty: QA lead.',
-      'vandelay->art: `george` George has left the team.'
+      'vandelay->art: New hire: `lloyd` Lloyd. Reviewer.',
+      'vandelay->art: `lloyd` Lloyd has a new specialty: QA lead.',
+      'vandelay->art: `lloyd` Lloyd has left the team.'
     ])
-    expect(h.get('george')).toBeUndefined()
-    expect(readFileSync(join(h.root, 'ROSTER.md'), 'utf8')).not.toContain('george')
+    expect(h.get('lloyd')).toBeUndefined()
+    expect(readFileSync(join(h.root, 'ROSTER.md'), 'utf8')).not.toContain('lloyd')
   })
 
   it('never lets the orchestrator go, or hands out reserved ids', () => {
@@ -218,7 +218,7 @@ describe('team management', () => {
     expect(h.get('kramer')).toMatchObject({ model: 'haiku' })
     expect(h.get('kramer')!.orchestrator).toBeUndefined()
     expect(h.get('kramer')!.temp).toBeUndefined()
-    expect(() => h.update('newman', { model: 'opus' })).toThrow(/Unknown agent/)
+    expect(() => h.update('bania', { model: 'opus' })).toThrow(/Unknown agent/)
   })
 
   it('lets the orchestrator hire and fire temps through HR', async () => {

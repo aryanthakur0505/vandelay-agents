@@ -19,24 +19,22 @@ function templateRole(name: string): string | undefined {
   return ROLE_TEMPLATES.find((t) => t.name.toLowerCase() === name.toLowerCase())?.role
 }
 
-function defaultAgents(): AgentConfig[] {
+/** The order the full staff joins a new hive. Kramer and Elaine come first, as in older hives. */
+const DEFAULT_STAFF = ['Kramer', 'Elaine', 'George', 'Jerry', 'Newman', 'Puddy', 'Jackie Chiles']
+
+export function slug(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'agent'
+}
+
+/** Art plus one agent per role template, each with the template's model and autonomy. */
+export function defaultAgents(): AgentConfig[] {
   // Agents are only useful as a real agent CLI; fall back to a shell when none is installed.
   const cli = findExecutable('claude') ? 'claude' : SHELL
-  const worker = (id: string, name: string, color: string): AgentConfig => ({
-    id,
-    name,
-    command: cli,
-    args: [],
-    cwd: '',
-    color,
-    role: templateRole(name),
-    model: 'sonnet'
+  const staff = DEFAULT_STAFF.map((name, i): AgentConfig => {
+    const t = ROLE_TEMPLATES.find((r) => r.name === name)!
+    return { id: slug(name), name, command: cli, args: [], cwd: '', color: PALETTE[(i + 1) % PALETTE.length], role: t.role, model: t.model, autonomy: t.autonomy }
   })
-  return [
-    { id: 'art', name: 'Art Vandelay', command: cli, args: [], cwd: '', color: PALETTE[0], orchestrator: true },
-    worker('kramer', 'Kramer', PALETTE[1]),
-    worker('elaine', 'Elaine', PALETTE[2])
-  ]
+  return [{ id: 'art', name: 'Art Vandelay', command: cli, args: [], cwd: '', color: PALETTE[0], orchestrator: true }, ...staff]
 }
 
 const PROTOCOL = `# Vandelay Agents hive protocol
@@ -182,7 +180,7 @@ export class Hive extends EventEmitter {
   }
 
   add(input: AgentInput, announce = true): AgentConfig {
-    const base = input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'agent'
+    const base = slug(input.name)
     let id = base
     for (let n = 2; this.get(id) || RESERVED.has(id); n++) id = `${base}-${n}`
     // A second orchestrator would make routing ambiguous.
