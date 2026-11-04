@@ -3,6 +3,16 @@
   "version": "0.2.0",
   "private": true,
   "description": "Vandelay Agents: run terminal coding CLIs as a team of agents on a 2D office floor.",
+  "keywords": [
+    "ai-agents",
+    "claude-code",
+    "multi-agent",
+    "electron",
+    "terminal",
+    "orchestrator",
+    "xterm",
+    "node-pty"
+  ],
   "main": "./out/main/index.js",
   "license": "MIT",
   "repository": {
