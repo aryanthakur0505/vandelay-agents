@@ -74,7 +74,10 @@ function nudgeText(agent: AgentConfig, msg: HiveMessage): string {
 function notifyHuman(msg: HiveMessage): void {
   if (!win || win.isDestroyed() || win.isFocused() || !Notification.isSupported()) return
   const n = new Notification({ title: `${hive.get(msg.from)?.name ?? msg.from} replied`, body: msg.body.slice(0, 200) })
-  n.on('click', () => win?.show())
+  n.on('click', () => {
+    win?.show()
+    win?.focus()
+  })
   n.show()
   win.flashFrame(true)
 }
