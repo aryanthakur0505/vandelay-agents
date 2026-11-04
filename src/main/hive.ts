@@ -133,6 +133,8 @@ export class Hive extends EventEmitter {
   readonly root: string
   private agents: AgentConfig[] = []
   private timer: NodeJS.Timeout | null = null
+  /** Keeps message ids unique when one sender delivers several in the same millisecond. */
+  private seq = 0
 
   constructor(readonly workspace: string) {
     super()
@@ -222,7 +224,7 @@ export class Hive extends EventEmitter {
   /** Put a message straight into an agent's inbox (used for messages from the human and the app). */
   deliver(from: string, to: string, body: string): HiveMessage {
     const at = Date.now()
-    const msgId = `${at}-${from}`
+    const msgId = `${at}-${String(this.seq++ % 1000).padStart(3, '0')}-${from}`
     const dir = to === 'you' ? join(this.root, 'you') : join(this.agentDir(to), 'inbox')
     const file = join(dir, `${msgId}.md`)
     const text = `from: ${from}\nto: ${to}\nat: ${new Date(at).toISOString()}\n---\n${body.trim()}\n`
