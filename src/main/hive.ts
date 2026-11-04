@@ -351,7 +351,8 @@ export function parseOutgoing(text: string): { to: string | null; body: string }
   let to: string | null = null
   for (const line of lines.slice(0, sep)) {
     const m = /^to:\s*(.+)$/i.exec(line.trim())
-    if (m) to = m[1].trim().toLowerCase()
+    // Agents write markdown, so `to: \`kramer\`` is common.
+    if (m) to = m[1].replace(/`/g, '').trim().toLowerCase()
   }
   return { to, body: lines.slice(sep + 1).join('\n') }
 }
