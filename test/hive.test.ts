@@ -110,6 +110,22 @@ describe('Hive', () => {
     expect(readdirSync(join(h.agentDir('kramer'), 'inbox'))).toHaveLength(5)
   })
 
+  it('writes a header on delivered mail and trims the body', () => {
+    const h = makeHive()
+    const msg = h.deliver('you', 'kramer', '\n  Giddyup  \n')
+    expect(msg.body).toBe('Giddyup')
+    expect(readFileSync(msg.file, 'utf8')).toMatch(/^from: you\nto: kramer\nat: \d{4}-.*Z\n---\nGiddyup\n$/)
+  })
+
+  it('ignores hidden and non-markdown files in an outbox', async () => {
+    const h = makeHive()
+    post(h, 'kramer', '.draft.md', 'to: elaine\n---\nnot yet')
+    post(h, 'kramer', 'notes.txt', 'to: elaine\n---\nnot mail')
+    h.startRouter(50)
+    await new Promise((r) => setTimeout(r, 300))
+    expect(readdirSync(join(h.agentDir('kramer'), 'outbox')).sort()).toEqual(['.draft.md', 'notes.txt'])
+  })
+
   it('leaves files that are still being written', async () => {
     const h = makeHive()
     writeFileSync(join(h.agentDir('kramer'), 'outbox', 'new.md'), 'to: you\n---\nhi')
