@@ -41,7 +41,7 @@ export function App(): React.JSX.Element {
   const [now, setNow] = useState(Date.now())
   const [theme, setTheme] = usePref<Theme>('theme', 'control')
   const [sound, setSound] = usePref<boolean>('sound', false)
-  const [booting, setBooting] = useState(theme === 'control')
+  const [booting, setBooting] = useState(theme === 'control' && !matchMedia('(prefers-reduced-motion: reduce)').matches)
 
   const lastOutput = useRef<Record<string, number>>({})
   const upSince = useRef<Record<string, number>>({})

@@ -572,3 +572,13 @@ main {
     opacity: 0;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .boot .cursor {
+    animation: none;
+  }
+
+  :root[data-theme='control'] body::after {
+    display: none;
+  }
+}
