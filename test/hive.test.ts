@@ -207,6 +207,23 @@ describe('team management', () => {
     expect(h.get('bania')).toBeUndefined()
   })
 
+  it('only lets the orchestrator fire its own temps', async () => {
+    const { h, mail } = makeHive()
+    post(h, 'art', 'to: hr\n---\nfire: kramer')
+    h.startRouter(50)
+    await until(() => mail.length > 0)
+    expect(mail[0]).toBe('vandelay->art: `kramer` is not one of your temps.')
+    expect(h.get('kramer')).toBeDefined()
+  })
+
+  it('explains the HR format when a request has neither hire nor fire', async () => {
+    const { h, mail } = makeHive()
+    post(h, 'art', 'to: hr\n---\nCan we get more people?')
+    h.startRouter(50)
+    await until(() => mail.length > 0)
+    expect(mail[0]).toContain('HR needs a `hire: <name>` line')
+  })
+
   it('refuses temps from workers and beyond the limit', async () => {
     const { h, mail } = makeHive()
     post(h, 'kramer', 'to: hr\n---\nhire: Bob')
