@@ -167,6 +167,15 @@ describe('team management', () => {
     expect(h.add({ name: 'Vandelay', command: 'x', args: [], cwd: '' }).id).toBe('vandelay-2')
   })
 
+  it('ignores edits that would promote an agent or make it a temp', () => {
+    const { h } = makeHive()
+    h.update('kramer', { orchestrator: true, temp: true, hiredBy: 'art', model: 'haiku' })
+    expect(h.get('kramer')).toMatchObject({ model: 'haiku' })
+    expect(h.get('kramer')!.orchestrator).toBeUndefined()
+    expect(h.get('kramer')!.temp).toBeUndefined()
+    expect(() => h.update('newman', { model: 'opus' })).toThrow(/Unknown agent/)
+  })
+
   it('lets the orchestrator hire and fire temps through HR', async () => {
     const { h, mail } = makeHive()
     post(h, 'art', 'to: hr\n---\nhire: Bania\nrole: Tells jokes.\nmodel: haiku')
