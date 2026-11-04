@@ -37,6 +37,22 @@ describe('claude-mail-hook', () => {
     expect(out.additionalContext).toContain('You are Kramer (agent id "kramer")')
   })
 
+  it('context includes the roster and the agent role', async () => {
+    const dir = agentDir()
+    writeFileSync(join(dir, '..', '..', 'ROSTER.md'), '# Team roster\n- `elaine` Writer')
+    writeFileSync(join(dir, 'ROLE.md'), '# Role: worker\nPrototype things.')
+    const { stdout } = await run('context', dir).done
+    const text: string = JSON.parse(stdout).hookSpecificOutput.additionalContext
+    expect(text).toContain('`elaine` Writer')
+    expect(text).toContain('Prototype things.')
+    expect(text).toContain('memory.md')
+  })
+
+  it('does nothing for an unknown mode', async () => {
+    const { code, stdout, stderr } = await run('bogus', agentDir()).done
+    expect([code, stdout, stderr]).toEqual([0, '', ''])
+  })
+
   it('watch hands over new mail, files it in archive/ and exits 2', async () => {
     const dir = agentDir()
     writeFileSync(join(dir, 'inbox', '1-art.md'), 'from: art\n---\nGiddyup?')
