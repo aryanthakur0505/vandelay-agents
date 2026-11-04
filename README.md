@@ -239,10 +239,11 @@ Issues and pull requests are welcome. Before opening a PR, run `npm run typechec
 CI runs both, plus a build, on Windows, macOS and Linux. Keep code and art original: no assets or
 code copied from other projects.
 
-To publish a release, bump `version` in `package.json`, commit, then tag and push:
+To publish a release, bump `version` in `package.json`, move the "Unreleased" notes in
+`CHANGELOG.md` under the new version, commit, then tag and push:
 
 ```bash
-git tag v0.1.0 && git push origin v0.1.0
+git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
 The Release workflow builds the installers on all three systems and attaches them to a GitHub
