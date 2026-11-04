@@ -77,6 +77,19 @@ describe('Hive', () => {
     await until(() => readdirSync(join(h.root, 'dead-letter')).length > 0)
   })
 
+  it('tells the sender when mail is undeliverable', async () => {
+    const h = makeHive()
+    const notices: string[] = []
+    h.on('delivered', (m) => notices.push(`${m.from}->${m.to}: ${m.body}`))
+    post(h, 'kramer', 'lost.md', 'to: newman\n---\nhello')
+    post(h, 'kramer', 'blank.md', 'hello with no header')
+    h.startRouter(50)
+    await until(() => notices.length >= 2)
+    expect(notices.every((n) => n.startsWith('vandelay->kramer: Your message'))).toBe(true)
+    expect(notices.some((n) => n.includes('no agent `newman`'))).toBe(true)
+    expect(notices.some((n) => n.includes('no `to:` line'))).toBe(true)
+  })
+
   it('keeps every message when one sender delivers several at once', () => {
     const h = makeHive()
     for (let i = 0; i < 5; i++) h.deliver('you', 'kramer', `task ${i}`)
