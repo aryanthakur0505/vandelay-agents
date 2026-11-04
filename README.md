@@ -75,6 +75,7 @@ npm run dev     # opens the app; the UI hot-reloads
 | --- | --- |
 | `npm run dev:watch` | like `dev`, but also restarts the app when `src/main` or `src/preload` change (this restarts your agents) |
 | `npm test` | unit tests (vitest): router, team and temps, mail hook, claude settings, worktrees |
+| `npm run test:watch` | the same tests, rerun on every save |
 | `npm run typecheck` | TypeScript checks for all three processes |
 | `npm run build` / `npm run preview` | production build, and running it |
 | `npm run dist` | an installer in `release/` (NSIS on Windows, dmg on macOS, AppImage on Linux) |
