@@ -267,6 +267,14 @@ export class Hive extends EventEmitter {
           } else {
             renameSync(path, join(this.root, 'dead-letter', `${agent.id}-${Date.now()}-${f}`))
             this.emit('undeliverable', { from: agent.id, to, file: f })
+            // Otherwise the sender waits forever for a reply that can't come.
+            this.deliver(
+              SYSTEM,
+              agent.id,
+              to
+                ? `Your message \`${f}\` was not delivered: there is no agent \`${to}\`. Check .vandelay/ROSTER.md for ids.`
+                : `Your message \`${f}\` was not delivered: it has no \`to:\` line above a \`---\` separator.`
+            )
           }
         } catch (err) {
           console.error('[hive] failed to route', path, err)
