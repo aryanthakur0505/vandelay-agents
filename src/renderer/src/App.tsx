@@ -300,7 +300,7 @@ function Composer({ agents, defaultTo }: { agents: AgentConfig[]; defaultTo: str
       </select>
       <textarea
         value={body}
-        placeholder="Brief an agent (Ctrl+Enter to send)"
+        placeholder={`Brief ${agents.find((a) => a.id === target)?.name ?? 'an agent'} (Ctrl+Enter to send)`}
         onChange={(e) => setBody(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send()
