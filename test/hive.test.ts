@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, readFileSync, utimesSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readdirSync, readFileSync, utimesSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Hive, parseOutgoing } from '../src/main/hive'
@@ -46,6 +46,16 @@ describe('Hive', () => {
     expect(readFileSync(join(h.root, '.gitignore'), 'utf8')).toBe('*\n')
     expect(readFileSync(join(h.agentDir('kramer'), 'ROLE.md'), 'utf8')).toContain('Role: worker')
     expect(existsSync(join(h.agentDir('kramer'), 'memory.md'))).toBe(true)
+  })
+
+  it('starts with the default team when agents.json is broken, keeping a copy', () => {
+    const root = scratch()
+    mkdirSync(join(root, '.vandelay'), { recursive: true })
+    writeFileSync(join(root, '.vandelay', 'agents.json'), '[{ "id": "art", oops')
+    hive = new Hive(root)
+    hive.init()
+    expect(hive.list().map((a) => a.id)).toEqual(['art', 'kramer', 'elaine'])
+    expect(readdirSync(hive.root).some((f) => f.startsWith('agents.json.broken-'))).toBe(true)
   })
 
   it('never gives an agent the id "you" or a duplicate id', () => {
