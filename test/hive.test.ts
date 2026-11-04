@@ -13,6 +13,10 @@ describe('parseOutgoing', () => {
     expect(parseOutgoing('﻿to: elaine\r\n---\r\nGet out!')).toEqual({ to: 'elaine', body: 'Get out!' })
   })
 
+  it('accepts a recipient written as markdown code', () => {
+    expect(parseOutgoing('to: `kramer`\n---\nhi').to).toBe('kramer')
+  })
+
   it('has no recipient without a separator', () => {
     expect(parseOutgoing('just a note')).toEqual({ to: null, body: 'just a note' })
   })
