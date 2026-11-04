@@ -45,9 +45,20 @@ function layout(agents: AgentConfig[], w: number, h: number): Record<string, Spo
   const boss = agents.find((a) => a.orchestrator)
   if (boss) spots[boss.id] = { x: 110, y: 110 }
   const staff = agents.filter((a) => !a.orchestrator)
-  const cols = Math.max(1, Math.floor((w - 240) / 150))
+  if (staff.length === 0) return spots
+  // As many desks per row as fit, then even rows, then squeeze the spacing so every desk stays above
+  // the front door. A desk with its label needs about 115 px across and 95 px down.
+  const left = 290
+  const right = w - 70
+  const top = 90
+  const bottom = h - 150
+  const fit = Math.max(1, Math.floor((right - left) / 115) + 1)
+  const rows = Math.ceil(staff.length / fit)
+  const cols = Math.ceil(staff.length / rows)
+  const dx = cols > 1 ? Math.min(150, (right - left) / (cols - 1)) : 0
+  const dy = rows > 1 ? Math.max(95, Math.min(140, (bottom - top) / (rows - 1))) : 0
   staff.forEach((a, i) => {
-    spots[a.id] = { x: 290 + (i % cols) * 150, y: 90 + Math.floor(i / cols) * 140 }
+    spots[a.id] = { x: left + (i % cols) * dx, y: top + Math.floor(i / cols) * dy }
   })
   return spots
 }
