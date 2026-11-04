@@ -167,6 +167,13 @@ describe('team management', () => {
     expect(h.add({ name: 'Vandelay', command: 'x', args: [], cwd: '' }).id).toBe('vandelay-2')
   })
 
+  it('never hires a second orchestrator', () => {
+    const { h } = makeHive()
+    const boss = h.add({ name: 'Steinbrenner', command: 'x', args: [], cwd: '', orchestrator: true })
+    expect(boss.orchestrator).toBeUndefined()
+    expect(h.list().filter((a) => a.orchestrator).map((a) => a.id)).toEqual(['art'])
+  })
+
   it('ignores edits that would promote an agent or make it a temp', () => {
     const { h } = makeHive()
     h.update('kramer', { orchestrator: true, temp: true, hiredBy: 'art', model: 'haiku' })
