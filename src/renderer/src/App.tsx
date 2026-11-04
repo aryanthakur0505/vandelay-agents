@@ -53,6 +53,12 @@ export function App(): React.JSX.Element {
     document.documentElement.dataset.theme = theme
   }, [theme])
 
+  // Unread mail in the title shows up in the taskbar while the window is in the background.
+  const totalUnread = agents.reduce((n, a) => n + (unread[a.id] ?? 0), 0)
+  useEffect(() => {
+    document.title = totalUnread ? `(${totalUnread}) Vandelay Agents` : 'Vandelay Agents'
+  }, [totalUnread])
+
   useEffect(() => {
     window.vandelay.workspace().then(setWorkspace)
     window.vandelay.listAgents().then((list) => {
