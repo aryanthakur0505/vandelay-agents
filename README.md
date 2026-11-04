@@ -221,6 +221,17 @@ On Windows, commands are resolved through `PATH` and `PATHEXT`, so npm shims lik
 by name. If the app was itself started from inside a Claude Code session, that session's
 `CLAUDE_*` variables are removed from agent terminals so each agent starts as its own session.
 
+## Troubleshooting
+
+| Problem | Fix |
+| --- | --- |
+| Agents show a PowerShell or bash prompt instead of Claude | `claude` wasn't on `PATH` when the hive was created. Install Claude Code, then **Edit** each agent and set the command to `claude`. |
+| A claude agent never reacts to mail | Check that `node` is on `PATH` (the mail hook runs on it). Without Node the app types a prompt instead, which only lands when the terminal is idle. |
+| An agent asks you to sign in | Sign in once inside its terminal; later agents reuse the login. |
+| Mail ends up in `.vandelay/dead-letter/` | The `to:` id didn't match anyone on `.vandelay/ROSTER.md`. The sender gets a notice saying so. |
+| "No worktree" in an agent's terminal | The workspace isn't a git repository, so the agent works in the workspace itself. |
+| The team is gone after editing `agents.json` by hand | The file had a JSON error. Your version is kept as `agents.json.broken-<time>` next to it. |
+
 ## Project layout
 
 ```
