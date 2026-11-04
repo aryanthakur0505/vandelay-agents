@@ -85,6 +85,16 @@ button:hover:not(:disabled) {
   box-shadow: var(--glow);
 }
 
+/* Show where keyboard focus is, without outlining every mouse click. */
+:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.terminal-host :focus-visible {
+  outline: none;
+}
+
 button:disabled {
   opacity: 0.5;
   cursor: default;
