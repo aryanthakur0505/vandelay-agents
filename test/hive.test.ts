@@ -167,6 +167,16 @@ describe('team management', () => {
     expect(h.add({ name: 'Vandelay', command: 'x', args: [], cwd: '' }).id).toBe('vandelay-2')
   })
 
+  it('gives familiar names their template role when an old roster has none', () => {
+    const root = scratch()
+    mkdirSync(join(root, '.vandelay'), { recursive: true })
+    const old = [{ id: 'newman', name: 'Newman', command: 'x', args: [], cwd: '', color: '#000' }]
+    writeFileSync(join(root, '.vandelay', 'agents.json'), JSON.stringify(old))
+    hive = new Hive(root)
+    hive.init()
+    expect(hive.get('newman')!.role).toMatch(/^Security auditor/)
+  })
+
   it('never hires a second orchestrator', () => {
     const { h } = makeHive()
     const boss = h.add({ name: 'Steinbrenner', command: 'x', args: [], cwd: '', orchestrator: true })
