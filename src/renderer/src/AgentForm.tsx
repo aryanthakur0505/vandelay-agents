@@ -48,7 +48,7 @@ export function AgentForm({ agent, teamSize, onSave, onCancel }: Props): React.J
   }
 
   return (
-    <div className="modal-backdrop" onClick={onCancel}>
+    <div className="modal-backdrop" onClick={onCancel} onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
       <form className="panel agent-form" onSubmit={submit} onClick={(e) => e.stopPropagation()}>
         <h2>{editing ? `Edit ${agent!.name}` : 'Hire an agent'}</h2>
         {!editing && (
