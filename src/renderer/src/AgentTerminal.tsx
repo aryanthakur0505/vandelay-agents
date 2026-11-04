@@ -36,6 +36,21 @@ export function AgentTerminal({ agent, visible, generation, theme }: Props): Rea
       if (id === agent.id) t.write(`\r\n\x1b[2m[process exited with code ${code}]\x1b[0m\r\n`)
     })
     const input = t.onData((data) => window.vandelay.write(agent.id, data))
+    // Ctrl+C belongs to the agent (interrupt), so copy and paste use Ctrl+Shift like other terminals.
+    t.attachCustomKeyEventHandler((e) => {
+      if (e.type !== 'keydown' || !e.ctrlKey || !e.shiftKey) return true
+      if (e.code === 'KeyC' && t.hasSelection()) {
+        navigator.clipboard.writeText(t.getSelection()).catch(() => {})
+        return false
+      }
+      if (e.code === 'KeyV') {
+        // Otherwise Chromium's own paste-as-plain-text pastes a second copy.
+        e.preventDefault()
+        navigator.clipboard.readText().then((text) => text && t.paste(text), () => {})
+        return false
+      }
+      return true
+    })
 
     const ro = new ResizeObserver(() => {
       if (!host.current?.offsetWidth) return
