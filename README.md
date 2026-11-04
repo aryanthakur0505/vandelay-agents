@@ -10,6 +10,22 @@ floor. Art Vandelay, the orchestrator, takes your brief and routes the work to e
 
 *Electron · React · TypeScript · electron-vite · xterm.js · node-pty*
 
+## Why
+
+One Claude Code session does one thing at a time, and you drive every step. Vandelay Agents puts
+a manager and a team on top of the same CLI:
+
+- **Brief once.** Tell Art what you want; Art splits it up, hands each piece to the agent whose
+  specialty fits, and reports back.
+- **Work in parallel.** Code, tests, docs and review can run at the same time in separate agents.
+- **Focused specialists.** A reviewer only reviews, an auditor only audits, each with its own memory.
+- **No collisions.** With worktrees, each agent edits on its own branch; you merge what you like.
+- **Watch or walk away.** See who's busy on the floor, open any terminal, or wait for the
+  desktop notification when Art replies.
+
+It pays off on jobs that split into independent parts. For a quick one-step change a single
+session is faster and cheaper: every claude agent uses your account's tokens.
+
 ## Status
 
 Milestone 1 (MVP):
