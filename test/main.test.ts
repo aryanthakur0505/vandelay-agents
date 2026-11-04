@@ -25,6 +25,15 @@ describe('ensureWorktree', () => {
     expect(await ensureWorktree(dir, wt, 'kramer')).toBe('vandelay/kramer')
   })
 
+  it('reuses the branch when the worktree folder was removed', async () => {
+    const dir = repo()
+    const wt = join(dir, '.vandelay', 'worktrees', 'elaine')
+    await ensureWorktree(dir, wt, 'elaine')
+    execFileSync('git', ['worktree', 'remove', '--force', wt], { cwd: dir })
+    expect(await ensureWorktree(dir, wt, 'elaine')).toBe('vandelay/elaine')
+    expect(existsSync(join(wt, 'README.md'))).toBe(true)
+  })
+
   it('fails outside a git repository', async () => {
     const dir = scratch()
     await expect(ensureWorktree(dir, join(dir, 'wt'), 'kramer')).rejects.toThrow()
