@@ -47,6 +47,15 @@ describe('claude-mail-hook', () => {
     expect(readdirSync(join(dir, 'archive'))).toEqual(['1-art.md'])
   })
 
+  it('cuts very long mail short and points at the full copy', async () => {
+    const dir = agentDir()
+    writeFileSync(join(dir, 'inbox', '2-art.md'), 'x'.repeat(20000))
+    const { code, stderr } = await run('watch', dir).done
+    expect(code).toBe(2)
+    expect(stderr.length).toBeLessThan(10000)
+    expect(stderr).toContain('[... cut short, full text in')
+  })
+
   it('a newer watcher replaces an older one', async () => {
     const dir = agentDir()
     const first = run('watch', dir)
