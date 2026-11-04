@@ -77,6 +77,12 @@ describe('Hive', () => {
     await until(() => readdirSync(join(h.root, 'dead-letter')).length > 0)
   })
 
+  it('keeps every message when one sender delivers several at once', () => {
+    const h = makeHive()
+    for (let i = 0; i < 5; i++) h.deliver('you', 'kramer', `task ${i}`)
+    expect(readdirSync(join(h.agentDir('kramer'), 'inbox'))).toHaveLength(5)
+  })
+
   it('leaves files that are still being written', async () => {
     const h = makeHive()
     writeFileSync(join(h.agentDir('kramer'), 'outbox', 'new.md'), 'to: you\n---\nhi')
