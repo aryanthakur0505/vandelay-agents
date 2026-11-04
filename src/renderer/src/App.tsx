@@ -119,6 +119,23 @@ export function App(): React.JSX.Element {
     setUnread((u) => ({ ...u, [id]: 0 }))
   }
 
+  // Alt+1…9 jumps to an agent. Alt+digit means nothing to the agent CLIs, so terminals don't miss it.
+  const agentsRef = useRef(agents)
+  agentsRef.current = agents
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent): void => {
+      if (!e.altKey || e.ctrlKey || e.metaKey || !/^Digit[1-9]$/.test(e.code)) return
+      const a = agentsRef.current[Number(e.code.slice(5)) - 1]
+      if (!a) return
+      e.preventDefault()
+      e.stopPropagation()
+      setSelected(a.id)
+      setUnread((u) => ({ ...u, [a.id]: 0 }))
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [])
+
   const restart = async (id: string): Promise<void> => {
     await window.vandelay.stopAgent(id)
     exited.current.delete(id)
@@ -237,7 +254,13 @@ export function App(): React.JSX.Element {
               const s = statuses[a.id] ?? 'starting'
               const t = traffic[a.id]
               return (
-                <button key={a.id} className={a.id === selected ? 'unit active' : 'unit'} onClick={() => select(a.id)} style={{ '--unit': a.color } as React.CSSProperties}>
+                <button
+                  key={a.id}
+                  className={a.id === selected ? 'unit active' : 'unit'}
+                  onClick={() => select(a.id)}
+                  title={i < 9 ? `Alt+${i + 1}` : undefined}
+                  style={{ '--unit': a.color } as React.CSSProperties}
+                >
                   <span className="unit-head">
                     <i style={{ background: colors[s], boxShadow: `0 0 6px ${colors[s]}` }} />
                     <b>{a.name}</b>
