@@ -146,6 +146,18 @@ describe('team management', () => {
     expect(readFileSync(join(h.agentDir('kramer'), 'ROLE.md'), 'utf8')).toContain('## Your specialty')
   })
 
+  it('notes temps, models and read-only agents in the roster and their roles', () => {
+    const { h } = makeHive()
+    h.add({ name: 'Newman', command: 'claude', args: [], cwd: '', role: 'Audits.', model: 'haiku', autonomy: 'read-only' })
+    h.add({ name: 'Bania', command: 'claude', args: [], cwd: '', temp: true, hiredBy: 'art', worktree: true })
+    const roster = readFileSync(join(h.root, 'ROSTER.md'), 'utf8')
+    expect(roster).toContain('`newman` **Newman**: Audits. _(model haiku, read-only)_')
+    expect(roster).toContain('_(temp hired by art)_')
+    const role = readFileSync(join(h.agentDir('bania'), 'ROLE.md'), 'utf8')
+    expect(role).toContain('You are a temp, hired by `art`')
+    expect(role).toContain('branch `vandelay/bania`')
+  })
+
   it('tells the orchestrator about hires, specialty changes and departures', () => {
     const { h, mail } = makeHive()
     const george = h.add({ name: 'George', command: 'claude', args: [], cwd: '', role: 'Reviewer.' })
