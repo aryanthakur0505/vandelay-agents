@@ -32,7 +32,8 @@ function createWindow(): void {
     minWidth: 900,
     minHeight: 600,
     title: 'Vandelay Agents',
-    backgroundColor: '#1d1b1a',
+    // The control-room background, the default theme, so the window doesn't flash brown on load.
+    backgroundColor: '#04080d',
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
