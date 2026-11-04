@@ -149,11 +149,24 @@ export class Hive extends EventEmitter {
     // Keep the hive out of the workspace's git status, whatever repository it sits in.
     writeFileSync(join(this.root, '.gitignore'), '*\n')
     const file = join(this.root, 'agents.json')
-    this.agents = existsSync(file) ? JSON.parse(readFileSync(file, 'utf8')) : defaultAgents()
+    this.agents = existsSync(file) ? this.load(file) : defaultAgents()
     // Older hives hired agents before roles existed; give the familiar names their usual role.
     for (const a of this.agents) if (!a.role && !a.orchestrator) a.role = templateRole(a.name)
     this.save()
     this.agents.forEach((a) => this.ensureAgentDirs(a))
+  }
+
+  /** A hand-edited roster with a typo shouldn't stop the app: keep a copy and start fresh. */
+  private load(file: string): AgentConfig[] {
+    try {
+      const agents = JSON.parse(readFileSync(file, 'utf8'))
+      if (Array.isArray(agents)) return agents
+    } catch {
+      // Fall through.
+    }
+    renameSync(file, `${file}.broken-${Date.now()}`)
+    console.error(`[hive] ${file} was unreadable; saved a copy and started with the default team`)
+    return defaultAgents()
   }
 
   list(): AgentConfig[] {
