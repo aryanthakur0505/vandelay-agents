@@ -2,7 +2,7 @@ import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { claudeArgs, claudeHookArgs, stopOrphans } from '../src/main/claudeHooks'
+import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from '../src/main/claudeHooks'
 import { ensureWorktree } from '../src/main/worktrees'
 import { scratch } from './helpers'
 
@@ -73,5 +73,14 @@ describe('claudeArgs', () => {
   it('maps model and autonomy to flags', () => {
     expect(claudeArgs({ ...base, model: 'haiku', autonomy: 'read-only' })).toEqual(['--model', 'haiku', '--permission-mode', 'plan'])
     expect(claudeArgs({ ...base, autonomy: 'edits' })).toEqual(['--permission-mode', 'acceptEdits'])
+    expect(claudeArgs({ ...base, autonomy: 'ask' })).toEqual(['--permission-mode', 'manual'])
+    expect(claudeArgs({ ...base, autonomy: 'auto' })).toEqual(['--permission-mode', 'auto'])
+  })
+})
+
+describe('isClaude', () => {
+  it('recognises claude by name, shim or full path', () => {
+    for (const cmd of ['claude', 'Claude.exe', 'claude.cmd', join('tools', 'bin', 'claude')]) expect(isClaude(cmd)).toBe(true)
+    for (const cmd of ['codex', 'claude-dev', 'powershell.exe']) expect(isClaude(cmd)).toBe(false)
   })
 })
