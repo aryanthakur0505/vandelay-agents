@@ -11,6 +11,9 @@
   },
   "homepage": "https://github.com/aryanthakur0505/vandelay-agents#readme",
   "bugs": "https://github.com/aryanthakur0505/vandelay-agents/issues",
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "dev:watch": "electron-vite dev --watch",
