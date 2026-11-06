@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Composer: keeps an unsent draft across restarts, can't send the same brief twice, and says why a
+  brief wasn't sent.
+- Mail for the agent you're looking at no longer counts as unread; badges stop at 99+.
+- The boot screen and the logo tooltip show the real version from `package.json`.
+- Hardening: mail is only delivered to known agents, the window can't navigate away from the app,
+  and only web links open in the browser.
+- Prettier formats the code, and CI checks it.
 - Two more hire templates: J. Peterman (product and marketing copy) and Babu (accessibility
   testing, read-only).
 - Ctrl+Shift+K jumps to the composer and Ctrl+Shift+F to the comms search.
