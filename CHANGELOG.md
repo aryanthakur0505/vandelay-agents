@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Hire form: shows the id the agent will get, and warns when its command isn't installed.
+- Renaming an agent keeps its id and tells Art; HR can let a temp go by name as well as id.
+- Hiring refuses a blank name or command.
 - Up and Down in an empty composer recall your last 50 briefs.
 - **Reply** on a message to you points the composer at its sender.
 - The window reopens where you left it, maximized or not, unless that screen is gone.
