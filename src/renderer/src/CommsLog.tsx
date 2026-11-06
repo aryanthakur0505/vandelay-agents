@@ -34,7 +34,7 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply }: 
             </option>
           ))}
         </select>
-        <input type="search" value={filter.query} placeholder="Search" onChange={(e) => setFilter({ ...filter, query: e.target.value })} />
+        <input id="comms-search" type="search" value={filter.query} placeholder="Search" onChange={(e) => setFilter({ ...filter, query: e.target.value })} />
         <button
           disabled={shown.length === 0}
           title="Save the messages shown as a Markdown file"

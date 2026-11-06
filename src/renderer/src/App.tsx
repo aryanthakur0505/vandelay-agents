@@ -128,14 +128,16 @@ export function App(): React.JSX.Element {
     return () => window.removeEventListener('keydown', onKey, true)
   }, [])
 
-  // Ctrl+Shift+K jumps to the composer from anywhere, terminals included (Ctrl+Shift is the usual
+  // Ctrl+Shift+K jumps to the composer and Ctrl+Shift+F to the comms search, terminals included (Ctrl+Shift is the usual
   // terminal-app modifier, so agent CLIs don't expect those keys).
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
-      if (!e.ctrlKey || !e.shiftKey || e.altKey || e.code !== 'KeyK') return
+      if (!e.ctrlKey || !e.shiftKey || e.altKey) return
+      const target = e.code === 'KeyK' ? 'composer-input' : e.code === 'KeyF' ? 'comms-search' : null
+      if (!target) return
       e.preventDefault()
       e.stopPropagation()
-      document.getElementById('composer-input')?.focus()
+      document.getElementById(target)?.focus()
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
