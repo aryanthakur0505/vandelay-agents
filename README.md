@@ -235,6 +235,8 @@ you, or **Export** what's shown as a Markdown transcript.
 | Ctrl+Enter | send the brief in the composer |
 | Up / Down (empty composer) | recall your last 50 briefs |
 | Alt+1 … Alt+9 | jump to the first nine agents |
+| Ctrl+Shift+K | jump to the composer, even from a terminal |
+| Ctrl+Shift+F | search the comms log |
 | Ctrl+Shift+C / Ctrl+Shift+V | copy / paste in an agent's terminal (Ctrl+C still interrupts the agent) |
 | Esc | close the hire or edit form |
 | any key or click | skip the boot sequence |

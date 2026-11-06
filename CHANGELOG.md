@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Ctrl+Shift+K jumps to the composer and Ctrl+Shift+F to the comms search.
 - Hire form: shows the id the agent will get, and warns when its command isn't installed.
 - Renaming an agent keeps its id and tells Art; HR can let a temp go by name as well as id.
 - Hiring refuses a blank name or command.
