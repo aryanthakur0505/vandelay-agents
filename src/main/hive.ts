@@ -242,6 +242,11 @@ export class Hive extends EventEmitter {
     return msg
   }
 
+  /** The same message to every agent except the sender, e.g. "stop what you're doing". */
+  broadcast(from: string, body: string): HiveMessage[] {
+    return this.agents.filter((a) => a.id !== from).map((a) => this.deliver(from, a.id, body))
+  }
+
   startRouter(intervalMs = 1000): void {
     this.timer = setInterval(() => this.route(), intervalMs)
   }
