@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, utimesSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Hive, parseOutgoing } from '../src/main/hive'
+import { Hive, parseDelivered, parseOutgoing } from '../src/main/hive'
 import { scratch, until } from './helpers'
 
 describe('parseOutgoing', () => {
@@ -19,6 +19,26 @@ describe('parseOutgoing', () => {
 
   it('has no recipient without a separator', () => {
     expect(parseOutgoing('just a note')).toEqual({ to: null, body: 'just a note' })
+  })
+})
+
+describe('parseDelivered', () => {
+  it('reads back the header the hive writes', () => {
+    const text = 'from: art\r\nto: kramer\r\nat: 2026-11-06T10:00:00.000Z\r\n---\r\nGiddyup\r\n'
+    expect(parseDelivered(text, join('x', '1762423200000-000-art.md'))).toEqual({
+      id: '1762423200000-000-art',
+      from: 'art',
+      to: 'kramer',
+      at: Date.parse('2026-11-06T10:00:00.000Z'),
+      file: join('x', '1762423200000-000-art.md'),
+      body: 'Giddyup'
+    })
+  })
+
+  it('ignores files that are not delivered mail', () => {
+    expect(parseDelivered('to: kramer\n---\nan outbox draft', 'a.md')).toBeNull()
+    expect(parseDelivered('from: art\nto: kramer\nat: soon\n---\nhi', 'b.md')).toBeNull()
+    expect(parseDelivered('no header at all', 'c.md')).toBeNull()
   })
 })
 
