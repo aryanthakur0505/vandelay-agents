@@ -198,7 +198,7 @@ export function App(): React.JSX.Element {
         <section className="left">
           <Floor agents={agents} statuses={statuses} unread={unread} flights={flights} selected={selected} theme={theme} onSelect={select} />
           <Composer agents={agents} defaultTo={agents.find((a) => a.orchestrator)?.id ?? agents[0]?.id ?? ''} />
-          <CommsLog log={log} agents={agents} orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} />
+          <CommsLog log={log} agents={agents} workspace={workspace} orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} />
         </section>
 
         <section className="right">

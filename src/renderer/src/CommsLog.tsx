@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { SYSTEM, YOU } from '@shared/ids'
 import type { AgentConfig, HiveMessage } from '@shared/types'
+import { commsFileName, commsMarkdown } from './commsExport'
 import { filterLog, NO_FILTER, type CommsFilter } from './commsFilter'
 import { addressLabel, time } from './format'
 
@@ -8,11 +9,12 @@ interface Props {
   /** Newest first. */
   log: HiveMessage[]
   agents: AgentConfig[]
+  workspace: string
   orchestratorName: string
 }
 
 /** Every message the router delivered, with replies to you shown in full. */
-export function CommsLog({ log, agents, orchestratorName }: Props): React.JSX.Element {
+export function CommsLog({ log, agents, workspace, orchestratorName }: Props): React.JSX.Element {
   const [filter, setFilter] = useState<CommsFilter>(NO_FILTER)
   const shown = filterLog(log, filter)
   const filtered = filter.party !== '' || filter.query.trim() !== ''
@@ -31,6 +33,13 @@ export function CommsLog({ log, agents, orchestratorName }: Props): React.JSX.El
           ))}
         </select>
         <input type="search" value={filter.query} placeholder="Search" onChange={(e) => setFilter({ ...filter, query: e.target.value })} />
+        <button
+          disabled={shown.length === 0}
+          title="Save the messages shown as a Markdown file"
+          onClick={() => window.vandelay.saveText(commsFileName(), commsMarkdown(shown, workspace))}
+        >
+          Export
+        </button>
       </div>
       <ul className="log">
         {log.length === 0 && <li className="muted">No traffic yet. Brief {orchestratorName} above.</li>}
