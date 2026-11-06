@@ -126,6 +126,13 @@ describe('Hive', () => {
     expect(readdirSync(join(h.agentDir('kramer'), 'outbox')).sort()).toEqual(['.draft.md', 'notes.txt'])
   })
 
+  it('broadcasts to every agent but the sender', () => {
+    const h = makeHive()
+    const sent = h.broadcast('art', 'Stand-up in five.')
+    expect(sent.map((m) => m.to)).toEqual(h.list().filter((a) => a.id !== 'art').map((a) => a.id))
+    for (const m of sent) expect(readdirSync(join(h.agentDir(m.to), 'inbox'))).toHaveLength(1)
+  })
+
   it('leaves files that are still being written', async () => {
     const h = makeHive()
     writeFileSync(join(h.agentDir('kramer'), 'outbox', 'new.md'), 'to: you\n---\nhi')
