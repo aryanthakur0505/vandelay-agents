@@ -9,14 +9,8 @@ import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
 import { clock, time } from './format'
 import { beep, usePref } from './prefs'
-import { STATUS_LABEL, statusColors, unitTag, WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
-
-interface Traffic {
-  sent: number
-  received: number
-  /** The latest thing this agent was asked to do. */
-  task?: string
-}
+import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
+import { UnitCards, type Traffic } from './UnitCards'
 
 const APP_START = Date.now()
 
@@ -143,7 +137,6 @@ export function App(): React.JSX.Element {
     await window.vandelay.removeAgent(a.id)
   }
 
-  const colors = statusColors(theme)
   const current = agents.find((a) => a.id === selected)
   const online = agents.filter((a) => {
     const s = statuses[a.id]
@@ -223,34 +216,17 @@ export function App(): React.JSX.Element {
         </section>
 
         <section className="right">
-          <nav className="units">
-            {agents.map((a, i) => {
-              const s = statuses[a.id] ?? 'starting'
-              const t = traffic[a.id]
-              return (
-                <button
-                  key={a.id}
-                  className={a.id === selected ? 'unit active' : 'unit'}
-                  onClick={() => select(a.id)}
-                  title={i < 9 ? `Alt+${i + 1}` : undefined}
-                  style={{ '--unit': a.color } as React.CSSProperties}
-                >
-                  <span className="unit-head">
-                    <i style={{ background: colors[s], boxShadow: `0 0 6px ${colors[s]}` }} />
-                    <b>{a.name}</b>
-                    {(unread[a.id] ?? 0) > 0 && <em>{unread[a.id]}</em>}
-                  </span>
-                  <span className="unit-meta">
-                    {unitTag(i)} · {STATUS_LABEL[s]}
-                    {upSince.current[a.id] && s !== 'exited' ? ` · ${clock(now - upSince.current[a.id])}` : ''}
-                  </span>
-                  <span className="unit-meta">
-                    {a.orchestrator ? 'ORCHESTRATOR' : a.temp ? 'TEMP' : (a.model ?? 'default').toUpperCase()} · ↑{t?.sent ?? 0} ↓{t?.received ?? 0}
-                  </span>
-                </button>
-              )
-            })}
-          </nav>
+          <UnitCards
+            agents={agents}
+            statuses={statuses}
+            unread={unread}
+            traffic={traffic}
+            upSince={upSince.current}
+            now={now}
+            selected={selected}
+            theme={theme}
+            onSelect={select}
+          />
           {current && (
             <div className="term-bar">
               <div className="term-info">
