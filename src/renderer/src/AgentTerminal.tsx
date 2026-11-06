@@ -33,7 +33,7 @@ export function AgentTerminal({ agent, visible, generation, theme }: Props): Rea
 
     const offData = window.vandelay.onData((id, data) => id === agent.id && t.write(data))
     const offExit = window.vandelay.onExit((id, code) => {
-      if (id === agent.id) t.write(`\r\n\x1b[2m[process exited with code ${code}]\x1b[0m\r\n`)
+      if (id === agent.id) t.write(`\r\n\x1b[2m[process exited with code ${code} · Start in the toolbar runs it again]\x1b[0m\r\n`)
     })
     const input = t.onData((data) => window.vandelay.write(agent.id, data))
     // Ctrl+C belongs to the agent (interrupt), so copy and paste use Ctrl+Shift like other terminals.
