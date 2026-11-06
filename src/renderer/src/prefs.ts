@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
  * A per-viewer setting kept in localStorage. Storage can be unavailable or cleared, so every access
  * is guarded and the default always works.
  */
-export function usePref<T extends string | boolean>(key: string, fallback: T): [T, (v: T) => void] {
+export function usePref<T extends string | boolean | string[]>(key: string, fallback: T): [T, (v: T) => void] {
   const [value, setValue] = useState<T>(() => {
     try {
       const raw = localStorage.getItem(`vandelay.${key}`)
