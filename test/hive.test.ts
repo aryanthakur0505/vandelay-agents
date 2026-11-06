@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, utimesSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, utimesSync, writeFileSync } from 'node:fs'
+import { basename, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Hive, parseDelivered, parseOutgoing } from '../src/main/hive'
 import { scratch, until } from './helpers'
@@ -144,6 +144,19 @@ describe('Hive', () => {
     h.startRouter(50)
     await new Promise((r) => setTimeout(r, 300))
     expect(readdirSync(join(h.agentDir('kramer'), 'outbox')).sort()).toEqual(['.draft.md', 'notes.txt'])
+  })
+
+  it('reads the latest messages back from disk, newest first, without sent copies', async () => {
+    const h = makeHive()
+    h.deliver('you', 'art', 'Build it')
+    await new Promise((r) => setTimeout(r, 5))
+    h.deliver('art', 'you', 'Built it')
+    // A handled message moves to the archive; the sender's own copy there is not a delivery.
+    const later = h.deliver('art', 'kramer', 'Prototype it')
+    renameSync(later.file, join(h.agentDir('kramer'), 'archive', basename(later.file)))
+    writeFileSync(join(h.agentDir('art'), 'archive', 'sent-1-x.md'), 'to: kramer\n---\nPrototype it')
+    expect(h.history().map((m) => `${m.from}->${m.to}: ${m.body}`)).toEqual(['art->kramer: Prototype it', 'art->you: Built it', 'you->art: Build it'])
+    expect(h.history(1)).toHaveLength(1)
   })
 
   it('broadcasts to every agent but the sender', () => {
