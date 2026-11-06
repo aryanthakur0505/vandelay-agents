@@ -28,6 +28,9 @@ export function TermBar({ agent, task, running, onEdit, onFire, onRestart, onSto
         </span>
         {task && <span className="task">Last task: {task}</span>}
       </div>
+      <button onClick={() => window.vandelay.openAgent(agent.id)} title="Open this agent's inbox, outbox, archive and notes">
+        Folder
+      </button>
       <button onClick={onEdit}>Edit</button>
       {!agent.orchestrator && <button onClick={onFire}>Let go</button>}
       {running && (
