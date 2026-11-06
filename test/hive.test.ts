@@ -170,6 +170,19 @@ describe('Hive', () => {
     expect(h.history(1)).toHaveLength(1)
   })
 
+  it('refuses to deliver to unknown recipients or from odd senders', () => {
+    const h = makeHive()
+    expect(() => h.deliver('you', 'newman-2', 'hi')).toThrow(/Unknown recipient/)
+    expect(() => h.deliver('you', '../../escape', 'hi')).toThrow(/Unknown recipient/)
+    expect(() => h.deliver('../x', 'kramer', 'hi')).toThrow(/Bad sender/)
+    expect(existsSync(join(h.root, 'escape'))).toBe(false)
+  })
+
+  it('broadcasts to everyone when the human sends it', () => {
+    const h = makeHive()
+    expect(h.broadcast('you', 'Lunch?')).toHaveLength(h.list().length)
+  })
+
   it('broadcasts to every agent but the sender', () => {
     const h = makeHive()
     const sent = h.broadcast('art', 'Stand-up in five.')
