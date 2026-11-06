@@ -4,6 +4,7 @@ import { AgentForm } from './AgentForm'
 import { AgentTerminal } from './AgentTerminal'
 import { BootScreen } from './BootScreen'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
+import { clock, time } from './format'
 import { beep, usePref } from './prefs'
 import { STATUS_LABEL, statusColors, unitTag, WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 
@@ -15,16 +16,6 @@ interface Traffic {
 }
 
 const APP_START = Date.now()
-
-function clock(ms: number): string {
-  const s = Math.floor(ms / 1000)
-  const pad = (n: number): string => String(n).padStart(2, '0')
-  return `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`
-}
-
-function time(at: number): string {
-  return new Date(at).toLocaleTimeString([], { hour12: false })
-}
 
 export function App(): React.JSX.Element {
   const [workspace, setWorkspace] = useState('')
