@@ -1,6 +1,6 @@
 import { existsSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
-import { app, BrowserWindow, dialog, ipcMain, Notification, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Notification, screen, shell } from 'electron'
 import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
 import type { AgentConfig, AgentFile, AgentInput, HiveMessage } from '@shared/types'
@@ -8,6 +8,7 @@ import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks
 import { Hive } from './hive'
 import { isShell, Terminals } from './terminals'
 import { askForWorkspace, chooseWorkspace, relaunchArgs } from './workspace'
+import { DEFAULT_SIZE, loadWindowState, MIN_SIZE, saveWindowState, usableBounds } from './windowState'
 import { ensureWorktree } from './worktrees'
 
 // Opt-in Chrome DevTools Protocol port, handy for driving the UI from scripts.
@@ -28,11 +29,14 @@ function send(channel: string, ...args: unknown[]): void {
 }
 
 function createWindow(): void {
+  const stateFile = join(app.getPath('userData'), 'window.json')
+  const saved = loadWindowState(stateFile)
+  const bounds = usableBounds(saved?.bounds, screen.getAllDisplays().map((d) => d.workArea))
   win = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    minWidth: 900,
-    minHeight: 600,
+    ...DEFAULT_SIZE,
+    ...bounds,
+    minWidth: MIN_SIZE.width,
+    minHeight: MIN_SIZE.height,
     title: 'Vandelay Agents',
     // The control-room background, the default theme, so the window doesn't flash brown on load.
     backgroundColor: '#04080d',
@@ -43,6 +47,11 @@ function createWindow(): void {
       sandbox: false
     }
   })
+
+  if (bounds && saved?.maximized) win.maximize()
+  // Remember where the window was, so it opens there next time.
+  const w = win
+  w.on('close', () => saveWindowState(stateFile, { bounds: w.getNormalBounds(), maximized: w.isMaximized() }))
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
