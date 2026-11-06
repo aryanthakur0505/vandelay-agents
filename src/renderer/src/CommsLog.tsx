@@ -1,21 +1,41 @@
+import { useState } from 'react'
 import { SYSTEM, YOU } from '@shared/ids'
-import type { HiveMessage } from '@shared/types'
+import type { AgentConfig, HiveMessage } from '@shared/types'
+import { filterLog, NO_FILTER, type CommsFilter } from './commsFilter'
 import { addressLabel, time } from './format'
 
 interface Props {
   /** Newest first. */
   log: HiveMessage[]
+  agents: AgentConfig[]
   orchestratorName: string
 }
 
 /** Every message the router delivered, with replies to you shown in full. */
-export function CommsLog({ log, orchestratorName }: Props): React.JSX.Element {
+export function CommsLog({ log, agents, orchestratorName }: Props): React.JSX.Element {
+  const [filter, setFilter] = useState<CommsFilter>(NO_FILTER)
+  const shown = filterLog(log, filter)
+  const filtered = filter.party !== '' || filter.query.trim() !== ''
+
   return (
     <div className="comms">
-      <div className="panel-title">Comms</div>
+      <div className="comms-bar">
+        <span className="panel-title">Comms</span>
+        <select value={filter.party} onChange={(e) => setFilter({ ...filter, party: e.target.value })} title="Only messages to or from">
+          <option value="">Everyone</option>
+          <option value={YOU}>You</option>
+          {agents.map((a) => (
+            <option key={a.id} value={a.id}>
+              {a.name}
+            </option>
+          ))}
+        </select>
+        <input type="search" value={filter.query} placeholder="Search" onChange={(e) => setFilter({ ...filter, query: e.target.value })} />
+      </div>
       <ul className="log">
         {log.length === 0 && <li className="muted">No traffic yet. Brief {orchestratorName} above.</li>}
-        {log.map((m) =>
+        {log.length > 0 && shown.length === 0 && <li className="muted">Nothing matches.</li>}
+        {shown.map((m) =>
           m.to === YOU ? (
             // Replies to the human are the point of the whole thing, so show them in full.
             <li key={m.file} className="to-you">
@@ -30,6 +50,11 @@ export function CommsLog({ log, orchestratorName }: Props): React.JSX.Element {
           )
         )}
       </ul>
+      {filtered && (
+        <div className="comms-count muted">
+          {shown.length} of {log.length}
+        </div>
+      )}
     </div>
   )
 }
