@@ -9,6 +9,13 @@ your files, in the folder you choose. Treat it like any tool that can run comman
 - Messages between agents are plain files in `.vandelay/`. Anything that can write there can send
   an agent instructions.
 
+## What the app does to limit damage
+
+- The router only delivers to agents on the roster, so a message can't be written outside the hive.
+- Two agents stuck replying to each other have their mail held after 12 messages in a minute.
+- The app window can't be navigated away from the app, and only `http(s)` links open in your browser.
+- The renderer can only open an agent's own folder, `memory.md` or `ROLE.md`, never an arbitrary path.
+
 ## Reporting a vulnerability
 
 Please report security problems privately through
