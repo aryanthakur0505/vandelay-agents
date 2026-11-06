@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, utimesSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { Hive, parseDelivered, parseOutgoing } from '../src/main/hive'
+import { Hive, LOOP_LIMIT, parseDelivered, parseOutgoing } from '../src/main/hive'
 import { scratch, until } from './helpers'
 
 describe('parseOutgoing', () => {
@@ -109,6 +109,17 @@ describe('Hive', () => {
     post(h, 'kramer', 'lost.md', 'to: bania\n---\nhello')
     h.startRouter(50)
     await until(() => readdirSync(join(h.root, 'dead-letter')).length > 0)
+  })
+
+  it('holds mail between two agents stuck in a loop, and tells you once', async () => {
+    const h = makeHive()
+    const mail: string[] = []
+    h.on('delivered', (m) => mail.push(`${m.from}->${m.to}`))
+    for (let i = 0; i < LOOP_LIMIT + 3; i++) post(h, i % 2 ? 'kramer' : 'elaine', `${i}.md`, `to: ${i % 2 ? 'elaine' : 'kramer'}\n---\nThanks!`)
+    h.startRouter(50)
+    await until(() => existsSync(join(h.root, 'held')) && readdirSync(join(h.root, 'held')).length === 3)
+    expect(mail.filter((m) => m !== 'vandelay->you')).toHaveLength(LOOP_LIMIT)
+    expect(mail.filter((m) => m === 'vandelay->you')).toHaveLength(1)
   })
 
   it('tells the sender when mail is undeliverable', async () => {
