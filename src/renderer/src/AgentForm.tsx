@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AUTONOMY, MODELS, ROLE_TEMPLATES, SUGGESTED_MAX_AGENTS } from '@shared/templates'
 import type { AgentConfig, AgentInput, Autonomy } from '@shared/types'
 
@@ -20,6 +20,14 @@ export function AgentForm({ agent, teamSize, onSave, onCancel }: Props): React.J
   const [cwd, setCwd] = useState(agent?.cwd ?? '')
   const [worktree, setWorktree] = useState(agent?.worktree ?? false)
   const editing = Boolean(agent)
+  const program = command.trim().split(/\s+/)[0] ?? ''
+  // Check as you type (debounced) so a typo shows up before the agent fails to start.
+  const [found, setFound] = useState(true)
+  useEffect(() => {
+    if (!program) return setFound(true)
+    const t = setTimeout(() => window.vandelay.commandExists(program).then(setFound), 300)
+    return () => clearTimeout(t)
+  }, [program])
   const claude = /^claude(\.exe|\.cmd)?$/i.test(command.trim().split(/\s+/)[0] ?? '')
 
   const useTemplate = (index: string): void => {
@@ -104,6 +112,7 @@ export function AgentForm({ agent, teamSize, onSave, onCancel }: Props): React.J
             </select>
           </label>
         </div>
+        {!found && <p className="warn">Can&apos;t find &quot;{program}&quot; on your PATH. The agent won&apos;t start until it is installed.</p>}
         {!claude && <p className="hint">Model and autonomy apply to claude agents only.</p>}
         <label>
           Working folder
