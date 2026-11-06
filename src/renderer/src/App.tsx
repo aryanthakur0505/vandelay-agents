@@ -4,9 +4,10 @@ import type { AgentConfig, HiveMessage } from '@shared/types'
 import { AgentForm } from './AgentForm'
 import { AgentTerminal } from './AgentTerminal'
 import { BootScreen } from './BootScreen'
+import { CommsLog } from './CommsLog'
 import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
-import { addressLabel, clock, time } from './format'
+import { clock, time } from './format'
 import { beep, usePref } from './prefs'
 import { STATUS_LABEL, statusColors, unitTag, WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 
@@ -218,26 +219,7 @@ export function App(): React.JSX.Element {
         <section className="left">
           <Floor agents={agents} statuses={statuses} unread={unread} flights={flights} selected={selected} theme={theme} onSelect={select} />
           <Composer agents={agents} defaultTo={agents.find((a) => a.orchestrator)?.id ?? agents[0]?.id ?? ''} />
-          <div className="comms">
-            <div className="panel-title">Comms</div>
-            <ul className="log">
-              {log.length === 0 && <li className="muted">No traffic yet. Brief {agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} above.</li>}
-              {log.map((m) =>
-                m.to === YOU ? (
-                  // Replies to the human are the point of the whole thing, so show them in full.
-                  <li key={m.file} className="to-you">
-                    <span className="ts">[{time(m.at)}]</span> <b>{addressLabel(m.from)}</b> ▸ <b>YOU</b>
-                    <p>{m.body}</p>
-                  </li>
-                ) : (
-                  <li key={m.file} title={m.body} className={m.from === SYSTEM ? 'system' : ''}>
-                    <span className="ts">[{time(m.at)}]</span> <b>{addressLabel(m.from)}</b> ▸ <b>{addressLabel(m.to)}</b>{' '}
-                    <span className="muted">{m.body.slice(0, 90)}</span>
-                  </li>
-                )
-              )}
-            </ul>
-          </div>
+          <CommsLog log={log} orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} />
         </section>
 
         <section className="right">
