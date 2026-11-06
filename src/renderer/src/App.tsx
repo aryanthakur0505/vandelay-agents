@@ -168,7 +168,9 @@ export function App(): React.JSX.Element {
 
       <header>
         <div className="brand">
-          <span className="logo">V</span>
+          <span className="logo" title={`Vandelay Agents v${__APP_VERSION__}`}>
+            V
+          </span>
           <div>
             <h1>Vandelay Agents{theme === 'control' && <span className="division"> // Robotics Division</span>}</h1>
             <small title="Choose another folder (restarts the app)">
