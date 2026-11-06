@@ -28,7 +28,7 @@ export function AgentForm({ agent, teamSize, onSave, onCancel }: Props): React.J
     const t = setTimeout(() => window.vandelay.commandExists(program).then(setFound), 300)
     return () => clearTimeout(t)
   }, [program])
-  const claude = /^claude(\.exe|\.cmd)?$/i.test(command.trim().split(/\s+/)[0] ?? '')
+  const claude = /^claude(\.exe|\.cmd)?$/i.test(program)
 
   const useTemplate = (index: string): void => {
     const t = ROLE_TEMPLATES[Number(index)]
