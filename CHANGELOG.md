@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The window reopens where you left it, maximized or not, unless that screen is gone.
 - Loop guard: two agents trading more than 12 messages a minute get their mail held, and you get
   one notice.
 - Comms log: filter by agent, search, copy replies, and export a Markdown transcript.
