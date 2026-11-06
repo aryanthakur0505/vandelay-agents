@@ -34,6 +34,7 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply }: 
         <select value={filter.party} onChange={(e) => setFilter({ ...filter, party: e.target.value })} title="Only messages to or from">
           <option value="">Everyone</option>
           <option value={YOU}>You</option>
+          <option value={SYSTEM}>App notices</option>
           {agents.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}
