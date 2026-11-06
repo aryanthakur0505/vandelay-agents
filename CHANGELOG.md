@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **To: Everyone** in the composer sends one brief to every agent.
 - New hives start with the full staff of eight: Art plus Kramer, Elaine, George, Jerry, Newman,
   Puddy and Jackie Chiles, each with its template model and autonomy.
 - Agents are told when their mail can't be delivered, instead of waiting for a reply forever.

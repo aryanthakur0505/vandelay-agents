@@ -188,6 +188,9 @@ Art gets a notice from `vandelay` (the app) and doesn't reply to it. **Edit** ch
 Art can't be let go. Past about eight agents the form warns you: each claude agent uses your
 account's tokens, and more agents mostly add cost, not speed.
 
+**Everyone at once.** Pick **To: Everyone** in the composer to send the same brief to every agent,
+say to pause or to share a new convention.
+
 **Temps.** For a one-off job Art can hire a temp by writing to `hr`:
 
 ```
