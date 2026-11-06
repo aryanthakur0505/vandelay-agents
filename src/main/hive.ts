@@ -8,6 +8,13 @@ import { findExecutable } from './terminals'
 
 const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572', '#2a9d8f', '#d4a373']
 
+/**
+ * Two agents trading more than LOOP_LIMIT messages within LOOP_WINDOW_MS are probably stuck replying
+ * to each other (the protocol asks them not to, but models slip). Further mail between them is held.
+ */
+export const LOOP_LIMIT = 12
+export const LOOP_WINDOW_MS = 60_000
+
 const SHELL = process.platform === 'win32' ? 'powershell.exe' : process.env.SHELL || 'bash'
 
 
@@ -129,6 +136,17 @@ export class Hive extends EventEmitter {
   private timer: NodeJS.Timeout | null = null
   /** Keeps message ids unique when one sender delivers several in the same millisecond. */
   private seq = 0
+  /** Recent delivery times per pair of agents, for spotting loops. */
+  private pairTimes = new Map<string, number[]>()
+
+  /** Records a message between two agents and says whether the pair has gone over the loop limit. */
+  private looping(from: string, to: string, now = Date.now()): boolean {
+    const key = [from, to].sort().join('|')
+    const times = (this.pairTimes.get(key) ?? []).filter((t) => now - t < LOOP_WINDOW_MS)
+    times.push(now)
+    this.pairTimes.set(key, times)
+    return times.length > LOOP_LIMIT
+  }
 
   constructor(readonly workspace: string) {
     super()
