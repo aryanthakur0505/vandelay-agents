@@ -232,6 +232,7 @@ you, or **Export** what's shown as a Markdown transcript.
 | Keys | Does |
 | --- | --- |
 | Ctrl+Enter | send the brief in the composer |
+| Up / Down (empty composer) | recall your last 50 briefs |
 | Alt+1 … Alt+9 | jump to the first nine agents |
 | Ctrl+Shift+C / Ctrl+Shift+V | copy / paste in an agent's terminal (Ctrl+C still interrupts the agent) |
 | Esc | close the hire or edit form |

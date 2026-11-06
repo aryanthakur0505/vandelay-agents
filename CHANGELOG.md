@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Up and Down in an empty composer recall your last 50 briefs.
+- **Reply** on a message to you points the composer at its sender.
 - The window reopens where you left it, maximized or not, unless that screen is gone.
 - Loop guard: two agents trading more than 12 messages a minute get their mail held, and you get
   one notice.
