@@ -69,6 +69,7 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
         onChange={(e) => {
           setBody(e.target.value)
           setBrowsing(-1)
+          setError('')
         }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) return void send()
