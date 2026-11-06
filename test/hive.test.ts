@@ -256,6 +256,13 @@ describe('team management', () => {
     expect(hive.get('newman')!.role).toMatch(/^Security auditor/)
   })
 
+  it('refuses hires without a name or command, and trims both', () => {
+    const { h } = makeHive()
+    expect(() => h.add({ name: '  ', command: 'claude', args: [], cwd: '' })).toThrow(/name/)
+    expect(() => h.add({ name: 'Babs', command: ' ', args: [], cwd: '' })).toThrow(/command/)
+    expect(h.add({ name: ' Babs ', command: ' claude ', args: [], cwd: '' })).toMatchObject({ id: 'babs', name: 'Babs', command: 'claude' })
+  })
+
   it('never hires a second orchestrator', () => {
     const { h } = makeHive()
     const boss = h.add({ name: 'Steinbrenner', command: 'x', args: [], cwd: '', orchestrator: true })
