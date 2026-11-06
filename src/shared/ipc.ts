@@ -13,6 +13,7 @@ export const IPC = {
   hiveSend: 'hive:send',
   hiveBroadcast: 'hive:broadcast',
   hiveDelivered: 'hive:delivered',
+  hiveHistory: 'hive:history',
   ptyWrite: 'pty:write',
   ptyResize: 'pty:resize',
   ptyData: 'pty:data',

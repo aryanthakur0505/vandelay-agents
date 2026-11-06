@@ -61,6 +61,8 @@ export interface VandelayApi {
   write(id: string, data: string): void
   resize(id: string, cols: number, rows: number): void
   sendMessage(to: string, body: string): Promise<void>
+  /** Recent delivered messages, newest first, read from disk. */
+  history(): Promise<HiveMessage[]>
   /** The same brief to every agent. */
   broadcast(body: string): Promise<void>
   onData(cb: (id: string, data: string) => void): () => void

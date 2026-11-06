@@ -169,6 +169,7 @@ function wire(): void {
   ipcMain.handle(IPC.hiveSend, (_e, to: string, body: string) => {
     hive.deliver(YOU, to, body)
   })
+  ipcMain.handle(IPC.hiveHistory, () => hive.history())
   ipcMain.handle(IPC.hiveBroadcast, (_e, body: string) => {
     hive.broadcast(YOU, body)
   })

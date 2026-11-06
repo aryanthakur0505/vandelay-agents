@@ -22,6 +22,7 @@ const api: VandelayApi = {
   resize: (id, cols, rows) => ipcRenderer.send(IPC.ptyResize, id, cols, rows),
   sendMessage: (to, body) => ipcRenderer.invoke(IPC.hiveSend, to, body),
   broadcast: (body) => ipcRenderer.invoke(IPC.hiveBroadcast, body),
+  history: () => ipcRenderer.invoke(IPC.hiveHistory),
   onData: (cb) => listen<[string, string]>(IPC.ptyData, cb),
   onExit: (cb) => listen<[string, number]>(IPC.ptyExit, cb),
   onDelivered: (cb) => listen<[HiveMessage]>(IPC.hiveDelivered, cb),
