@@ -56,6 +56,14 @@ function createWindow(): void {
   const w = win
   w.on('close', () => saveWindowState(stateFile, { bounds: w.getNormalBounds(), maximized: w.isMaximized() }))
 
+  // The window only ever shows the app. A link or a dropped file would otherwise replace it, with the
+  // preload bridge still attached, so open web links in the browser and ignore everything else.
+  win.webContents.on('will-navigate', (e, url) => {
+    if (url === win?.webContents.getURL()) return
+    e.preventDefault()
+    if (/^https?:\/\//.test(url)) shell.openExternal(url)
+  })
+
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
     return { action: 'deny' }
