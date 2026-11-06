@@ -122,6 +122,7 @@ in `<workspace>/.vandelay/`:
   PROTOCOL.md          how agents message each other
   you/                 replies addressed to you
   dead-letter/         messages with an unknown recipient
+  held/                mail between two agents stuck replying to each other
   former/              folders of agents you let go
   agents/<id>/
     inbox/  outbox/  archive/  memory.md  ROLE.md
@@ -208,7 +209,8 @@ HR (the app) replies with the temp's id, the temp appears on the floor, and Art 
 `fire: <id>` when the job is done. Only the orchestrator can hire temps, at most three at once.
 
 The protocol tells agents not to answer replies or acknowledgements, so two agents can't thank each
-other forever. Replies addressed to you show in full in the comms log, with a desktop notification
+other forever. If two agents still trade more than 12 messages in a minute, the router holds their
+mail in `.vandelay/held/` and tells you. Replies addressed to you show in full in the comms log, with a desktop notification
 when the window isn't focused. Sign in once inside an agent's terminal the first time it runs.
 
 ### Themes
