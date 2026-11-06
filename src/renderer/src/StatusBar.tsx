@@ -12,17 +12,17 @@ interface Props {
 export function StatusBar({ online, total, routed, uptimeMs, now }: Props): React.JSX.Element {
   return (
     <dl className="stats">
-      <div>
+      <div title="Agents whose terminal is running">
         <dt>Units online</dt>
         <dd>
           {online}/{total}
         </dd>
       </div>
-      <div>
+      <div title="Messages delivered since the app started">
         <dt>Packets routed</dt>
         <dd>{routed}</dd>
       </div>
-      <div>
+      <div title="Time since the app started">
         <dt>Uptime</dt>
         <dd>{clock(uptimeMs)}</dd>
       </div>
