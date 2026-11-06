@@ -194,6 +194,9 @@ export class Hive extends EventEmitter {
   }
 
   add(input: AgentInput, announce = true): AgentConfig {
+    if (!input.name?.trim()) throw new Error('An agent needs a name.')
+    if (!input.command?.trim()) throw new Error('An agent needs a command to run.')
+    input = { ...input, name: input.name.trim(), command: input.command.trim() }
     const base = slug(input.name)
     let id = base
     for (let n = 2; this.get(id) || RESERVED_IDS.has(id); n++) id = `${base}-${n}`
