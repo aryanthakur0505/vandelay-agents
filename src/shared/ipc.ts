@@ -9,6 +9,7 @@ export const IPC = {
   agentsStart: 'agents:start',
   agentsStop: 'agents:stop',
   agentsRoster: 'agents:roster',
+  agentsOpen: 'agents:open',
   hiveSend: 'hive:send',
   hiveBroadcast: 'hive:broadcast',
   hiveDelivered: 'hive:delivered',

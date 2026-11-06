@@ -17,6 +17,7 @@ const api: VandelayApi = {
   removeAgent: (id) => ipcRenderer.invoke(IPC.agentsRemove, id),
   startAgent: (id, cols, rows) => ipcRenderer.invoke(IPC.agentsStart, id, cols, rows),
   stopAgent: (id) => ipcRenderer.invoke(IPC.agentsStop, id),
+  openAgent: (id, file) => ipcRenderer.invoke(IPC.agentsOpen, id, file),
   write: (id, data) => ipcRenderer.send(IPC.ptyWrite, id, data),
   resize: (id, cols, rows) => ipcRenderer.send(IPC.ptyResize, id, cols, rows),
   sendMessage: (to, body) => ipcRenderer.invoke(IPC.hiveSend, to, body),

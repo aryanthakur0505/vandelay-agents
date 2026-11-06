@@ -41,6 +41,9 @@ export interface HiveMessage {
   at: number
 }
 
+/** Files in an agent's hive folder you can open from the app. */
+export type AgentFile = 'memory.md' | 'ROLE.md'
+
 export interface VandelayApi {
   workspace(): Promise<string>
   /** Pick another folder; the app restarts there. */
@@ -53,6 +56,8 @@ export interface VandelayApi {
   removeAgent(id: string): Promise<void>
   startAgent(id: string, cols: number, rows: number): Promise<void>
   stopAgent(id: string): Promise<void>
+  /** Opens the agent's hive folder, or one of its files, with the system's default app. */
+  openAgent(id: string, file?: AgentFile): Promise<void>
   write(id: string, data: string): void
   resize(id: string, cols: number, rows: number): void
   sendMessage(to: string, body: string): Promise<void>

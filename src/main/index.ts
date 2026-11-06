@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
 import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
-import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
+import type { AgentConfig, AgentFile, AgentInput, HiveMessage } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
 import { isShell, Terminals } from './terminals'
@@ -159,6 +159,13 @@ function wire(): void {
     }
   })
   ipcMain.handle(IPC.agentsStop, (_e, id: string) => terminals.stop(id))
+  const OPENABLE: AgentFile[] = ['memory.md', 'ROLE.md']
+  ipcMain.handle(IPC.agentsOpen, async (_e, id: string, file?: AgentFile) => {
+    // Only known agents and known files: the renderer never gets to open an arbitrary path.
+    if (!hive.get(id) || (file && !OPENABLE.includes(file))) return
+    const error = await shell.openPath(file ? join(hive.agentDir(id), file) : hive.agentDir(id))
+    if (error) console.error('[vandelay] could not open', id, file, error)
+  })
   ipcMain.handle(IPC.hiveSend, (_e, to: string, body: string) => {
     hive.deliver(YOU, to, body)
   })
