@@ -31,7 +31,10 @@ function send(channel: string, ...args: unknown[]): void {
 function createWindow(): void {
   const stateFile = join(app.getPath('userData'), 'window.json')
   const saved = loadWindowState(stateFile)
-  const bounds = usableBounds(saved?.bounds, screen.getAllDisplays().map((d) => d.workArea))
+  const bounds = usableBounds(
+    saved?.bounds,
+    screen.getAllDisplays().map((d) => d.workArea)
+  )
   win = new BrowserWindow({
     ...DEFAULT_SIZE,
     ...bounds,

@@ -9,7 +9,11 @@ import { findExecutable } from './terminals'
 const WATCH_TIMEOUT_S = 86400
 
 export function isClaude(command: string): boolean {
-  return basename(command).toLowerCase().replace(/\.(exe|cmd)$/, '') === 'claude'
+  return (
+    basename(command)
+      .toLowerCase()
+      .replace(/\.(exe|cmd)$/, '') === 'claude'
+  )
 }
 
 const PERMISSION_MODE: Record<Autonomy, string | null> = {
@@ -79,9 +83,7 @@ export function stopOrphans(agentDir: string): Promise<void> {
           ]
         ]
       : ['pkill', ['-f', '--', file]]
-  return new Promise((resolve) =>
-    execFile(cmd, args, { env: { ...process.env, VANDELAY_ORPHAN: file }, windowsHide: true }, () => resolve())
-  )
+  return new Promise((resolve) => execFile(cmd, args, { env: { ...process.env, VANDELAY_ORPHAN: file }, windowsHide: true }, () => resolve()))
 }
 
 /** `D:\a\b` -> `/d/a/b`, the form Claude Code permission rules match on Windows. */

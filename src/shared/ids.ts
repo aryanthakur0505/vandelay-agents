@@ -11,7 +11,12 @@ export const RESERVED_IDS: ReadonlySet<string> = new Set([YOU, SYSTEM, HR])
 
 /** An agent id made from a name: `Jackie Chiles` becomes `jackie-chiles`. */
 export function slug(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'agent'
+  return (
+    name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') || 'agent'
+  )
 }
 
 /** The id a new agent called `name` would get, given the ids already taken. */

@@ -90,7 +90,9 @@ export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.J
             value={role}
             disabled={agent?.orchestrator}
             onChange={(e) => setRole(e.target.value)}
-            placeholder={agent?.orchestrator ? 'The orchestrator routes work to everyone else.' : 'What this agent is good at. Art routes work by it.'}
+            placeholder={
+              agent?.orchestrator ? 'The orchestrator routes work to everyone else.' : 'What this agent is good at. Art routes work by it.'
+            }
           />
         </label>
         <label>
@@ -130,8 +132,8 @@ export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.J
         </label>
         {!editing && takenIds.length >= SUGGESTED_MAX_AGENTS && (
           <p className="warn">
-            You already have {takenIds.length} agents. Each claude agent uses your account&apos;s tokens; past about {SUGGESTED_MAX_AGENTS} they mostly add
-            cost, not speed.
+            You already have {takenIds.length} agents. Each claude agent uses your account&apos;s tokens; past about {SUGGESTED_MAX_AGENTS} they
+            mostly add cost, not speed.
           </p>
         )}
         {editing && <p className="hint">Changes apply the next time the agent starts. Use Restart.</p>}

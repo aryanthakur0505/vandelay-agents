@@ -8,7 +8,11 @@ const SHELLS = new Set(['powershell', 'pwsh', 'cmd', 'bash', 'zsh', 'sh', 'fish'
 
 /** Plain shells would try to run a nudge as a command, so we only nudge agent CLIs. */
 export function isShell(command: string): boolean {
-  return SHELLS.has(basename(command).toLowerCase().replace(/\.exe$/, ''))
+  return SHELLS.has(
+    basename(command)
+      .toLowerCase()
+      .replace(/\.exe$/, '')
+  )
 }
 
 /** Full path of a command found through PATH (and PATHEXT on Windows), or null. */
@@ -42,8 +46,7 @@ const HOST_SESSION_VAR = /^(CLAUDECODE|CLAUDE_PID|CLAUDE_AGENT_SDK_.*|CLAUDE_COD
 
 export function agentBaseEnv(): Record<string, string> {
   const env = { ...process.env } as Record<string, string>
-  if (env.CLAUDECODE || env.CLAUDE_CODE_DESKTOP_APP_VERSION)
-    for (const key of Object.keys(env)) if (HOST_SESSION_VAR.test(key)) delete env[key]
+  if (env.CLAUDECODE || env.CLAUDE_CODE_DESKTOP_APP_VERSION) for (const key of Object.keys(env)) if (HOST_SESSION_VAR.test(key)) delete env[key]
   return env
 }
 

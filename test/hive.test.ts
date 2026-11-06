@@ -173,7 +173,12 @@ describe('Hive', () => {
   it('broadcasts to every agent but the sender', () => {
     const h = makeHive()
     const sent = h.broadcast('art', 'Stand-up in five.')
-    expect(sent.map((m) => m.to)).toEqual(h.list().filter((a) => a.id !== 'art').map((a) => a.id))
+    expect(sent.map((m) => m.to)).toEqual(
+      h
+        .list()
+        .filter((a) => a.id !== 'art')
+        .map((a) => a.id)
+    )
     for (const m of sent) expect(readdirSync(join(h.agentDir(m.to), 'inbox'))).toHaveLength(1)
   })
 
@@ -276,7 +281,12 @@ describe('team management', () => {
     const { h } = makeHive()
     const boss = h.add({ name: 'Steinbrenner', command: 'x', args: [], cwd: '', orchestrator: true })
     expect(boss.orchestrator).toBeUndefined()
-    expect(h.list().filter((a) => a.orchestrator).map((a) => a.id)).toEqual(['art'])
+    expect(
+      h
+        .list()
+        .filter((a) => a.orchestrator)
+        .map((a) => a.id)
+    ).toEqual(['art'])
   })
 
   it('ignores edits that would promote an agent or make it a temp', () => {

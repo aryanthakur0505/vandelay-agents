@@ -17,7 +17,6 @@ export const LOOP_WINDOW_MS = 60_000
 
 const SHELL = process.platform === 'win32' ? 'powershell.exe' : process.env.SHELL || 'bash'
 
-
 function templateRole(name: string): string | undefined {
   return ROLE_TEMPLATES.find((t) => t.name.toLowerCase() === name.toLowerCase())?.role
 }
@@ -31,7 +30,17 @@ export function defaultAgents(): AgentConfig[] {
   const cli = findExecutable('claude') ? 'claude' : SHELL
   const staff = DEFAULT_STAFF.map((name, i): AgentConfig => {
     const t = ROLE_TEMPLATES.find((r) => r.name === name)!
-    return { id: slug(name), name, command: cli, args: [], cwd: '', color: PALETTE[(i + 1) % PALETTE.length], role: t.role, model: t.model, autonomy: t.autonomy }
+    return {
+      id: slug(name),
+      name,
+      command: cli,
+      args: [],
+      cwd: '',
+      color: PALETTE[(i + 1) % PALETTE.length],
+      role: t.role,
+      model: t.model,
+      autonomy: t.autonomy
+    }
   })
   return [{ id: 'art', name: 'Art Vandelay', command: cli, args: [], cwd: '', color: PALETTE[0], orchestrator: true }, ...staff]
 }
@@ -100,8 +109,7 @@ function roleFile(a: AgentConfig): string {
   let text = a.orchestrator ? ORCHESTRATOR_ROLE : WORKER_ROLE
   if (a.role) text += `\n## Your specialty\n\n${a.role}\n`
   if (a.temp) text += `\nYou are a temp, hired by \`${a.hiredBy}\` for one job. Report back to them when it is done.\n`
-  if (a.worktree)
-    text += `\nYou work in your own git worktree on branch \`vandelay/${a.id}\`. Commit your work there and say so in your reply.\n`
+  if (a.worktree) text += `\nYou work in your own git worktree on branch \`vandelay/${a.id}\`. Commit your work there and say so in your reply.\n`
   return text
 }
 
@@ -380,8 +388,7 @@ export class Hive extends EventEmitter {
       }
     } else if (fields.hire) {
       const temps = this.agents.filter((a) => a.temp && a.hiredBy === from)
-      if (temps.length >= MAX_TEMPS)
-        reply = `You already have ${temps.length} temps (${temps.map((t) => t.id).join(', ')}). Let one go first.`
+      if (temps.length >= MAX_TEMPS) reply = `You already have ${temps.length} temps (${temps.map((t) => t.id).join(', ')}). Let one go first.`
       else {
         const temp = this.add(
           {
@@ -437,7 +444,17 @@ export function parseDelivered(text: string, file: string): HiveMessage | null {
   const at = Date.parse(head.at ?? '')
   if (!head.from || !head.to || Number.isNaN(at)) return null
   const id = basename(file).replace(/\.md$/, '')
-  return { id, from: head.from, to: head.to, at, file, body: lines.slice(sep + 1).join('\n').trim() }
+  return {
+    id,
+    from: head.from,
+    to: head.to,
+    at,
+    file,
+    body: lines
+      .slice(sep + 1)
+      .join('\n')
+      .trim()
+  }
 }
 
 /** Reads `to: <id>` from the header lines above `---`. Without a separator the whole file is the body. */

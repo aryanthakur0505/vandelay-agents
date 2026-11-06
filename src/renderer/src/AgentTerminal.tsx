@@ -46,7 +46,10 @@ export function AgentTerminal({ agent, visible, generation, theme }: Props): Rea
       if (e.code === 'KeyV') {
         // Otherwise Chromium's own paste-as-plain-text pastes a second copy.
         e.preventDefault()
-        navigator.clipboard.readText().then((text) => text && t.paste(text), () => {})
+        navigator.clipboard.readText().then(
+          (text) => text && t.paste(text),
+          () => {}
+        )
         return false
       }
       return true

@@ -3,7 +3,12 @@ import type { HiveMessage } from '../src/shared/types'
 import { filterLog, NO_FILTER } from '../src/renderer/src/commsFilter'
 
 const msg = (from: string, to: string, body: string): HiveMessage => ({ id: `${from}-${to}`, from, to, body, file: '', at: 0 })
-const log = [msg('you', 'art', 'Ship the parser'), msg('art', 'kramer', 'Prototype a PARSER'), msg('kramer', 'art', 'Done'), msg('art', 'you', 'All set')]
+const log = [
+  msg('you', 'art', 'Ship the parser'),
+  msg('art', 'kramer', 'Prototype a PARSER'),
+  msg('kramer', 'art', 'Done'),
+  msg('art', 'you', 'All set')
+]
 
 describe('filterLog', () => {
   it('keeps everything without a filter', () => {

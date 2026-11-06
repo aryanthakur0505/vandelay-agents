@@ -331,7 +331,15 @@ function robot(ctx: CanvasRenderingContext2D, a: AgentConfig, s: Spot, status: A
   ctx.globalAlpha = 1
 }
 
-function controlBadge(ctx: CanvasRenderingContext2D, a: AgentConfig, index: number, s: Spot, status: AgentStatus, unread: number, selected: boolean): void {
+function controlBadge(
+  ctx: CanvasRenderingContext2D,
+  a: AgentConfig,
+  index: number,
+  s: Spot,
+  status: AgentStatus,
+  unread: number,
+  selected: boolean
+): void {
   ctx.textAlign = 'center'
   ctx.font = `bold 11px ${MONO}`
   ctx.fillStyle = selected ? '#ffffff' : '#cfe8f5'

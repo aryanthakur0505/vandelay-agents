@@ -201,14 +201,18 @@ header {
   border-radius: var(--radius);
   background: var(--accent);
   color: var(--accent-text);
-  font: bold 18px Georgia, serif;
+  font:
+    bold 18px Georgia,
+    serif;
 }
 
 :root[data-theme='control'] .logo {
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
-  box-shadow: var(--glow), inset var(--glow);
+  box-shadow:
+    var(--glow),
+    inset var(--glow);
   font: bold 16px var(--mono);
 }
 

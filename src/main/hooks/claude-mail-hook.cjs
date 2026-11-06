@@ -63,7 +63,10 @@ function watch() {
     if (read(lockFile) !== token) process.exit(0)
     let files
     try {
-      files = fs.readdirSync(inbox).filter((f) => f.endsWith('.md')).sort()
+      files = fs
+        .readdirSync(inbox)
+        .filter((f) => f.endsWith('.md'))
+        .sort()
     } catch {
       files = []
     }
