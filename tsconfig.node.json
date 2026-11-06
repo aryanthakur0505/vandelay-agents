@@ -28,6 +28,7 @@
     "src/shared/**/*",
     "src/renderer/src/status.ts",
     "src/renderer/src/format.ts",
+    "src/renderer/src/commsFilter.ts",
     "vitest.config.ts",
     "test/**/*"
   ]
