@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Comms log: filter by agent, search, copy replies, and export a Markdown transcript.
 - The comms log keeps the last 200 messages across restarts, read back from the hive's files.
 - Terminal toolbar: **Stop** and **Start** an agent without letting it go, and open its **Folder**
   or **Memory** notes.

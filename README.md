@@ -219,6 +219,12 @@ routed, uptime and a clock, and a boot sequence (click or press a key to skip). 
 the original warm office with desks and envelopes. Toggle in the header; **Sound** adds a short
 blip for each message (off by default). Both settings are remembered.
 
+### Comms log
+
+Every delivered message shows under the composer, newest first, and the last 200 come back after a
+restart. Filter by who sent or received a message, search the text, **Copy** a reply addressed to
+you, or **Export** what's shown as a Markdown transcript.
+
 ### Keyboard shortcuts
 
 | Keys | Does |
