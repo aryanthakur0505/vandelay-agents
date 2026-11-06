@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { clock, time } from '../src/renderer/src/format'
+import { addressLabel, clock, time } from '../src/renderer/src/format'
 
 describe('clock', () => {
   it('formats durations as hh:mm:ss', () => {
@@ -16,5 +16,11 @@ describe('clock', () => {
 describe('time', () => {
   it('uses a 24-hour clock', () => {
     expect(time(new Date(2026, 0, 1, 23, 5, 9).getTime())).toMatch(/23.05.09/)
+  })
+})
+
+describe('addressLabel', () => {
+  it('names the human and the app, and shouts agent ids', () => {
+    expect([addressLabel('you'), addressLabel('vandelay'), addressLabel('jackie-chiles')]).toEqual(['YOU', 'SYSTEM', 'JACKIE-CHILES'])
   })
 })
