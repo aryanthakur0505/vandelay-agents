@@ -258,6 +258,9 @@ export class Hive extends EventEmitter {
 
   /** Put a message straight into an agent's inbox (used for messages from the human and the app). */
   deliver(from: string, to: string, body: string): HiveMessage {
+    // Only real recipients: `to` becomes part of a path, so an unknown one must never reach the disk.
+    if (to !== YOU && !this.get(to)) throw new Error(`Unknown recipient ${to}`)
+    if (!/^[a-z0-9-]+$/.test(from)) throw new Error(`Bad sender ${from}`)
     const at = Date.now()
     const msgId = `${at}-${String(this.seq++ % 1000).padStart(3, '0')}-${from}`
     const dir = to === YOU ? join(this.root, YOU) : join(this.agentDir(to), 'inbox')
