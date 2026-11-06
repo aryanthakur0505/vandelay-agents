@@ -49,6 +49,7 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
         {agents.length > 1 && <option value={EVERYONE}>To: Everyone</option>}
       </select>
       <textarea
+        id="composer-input"
         ref={box}
         value={body}
         placeholder={`Brief ${target === EVERYONE ? 'every agent' : (agents.find((a) => a.id === target)?.name ?? 'an agent')} (Ctrl+Enter to send)`}
