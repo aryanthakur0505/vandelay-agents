@@ -30,6 +30,7 @@
     "src/renderer/src/format.ts",
     "src/renderer/src/commsFilter.ts",
     "src/renderer/src/commsExport.ts",
+    "src/renderer/src/briefHistory.ts",
     "vitest.config.ts",
     "test/**/*"
   ]
