@@ -11,10 +11,12 @@ interface Props {
   agents: AgentConfig[]
   workspace: string
   orchestratorName: string
+  /** Point the composer at whoever sent a message. */
+  onReply(to: string): void
 }
 
 /** Every message the router delivered, with replies to you shown in full. */
-export function CommsLog({ log, agents, workspace, orchestratorName }: Props): React.JSX.Element {
+export function CommsLog({ log, agents, workspace, orchestratorName, onReply }: Props): React.JSX.Element {
   const [filter, setFilter] = useState<CommsFilter>(NO_FILTER)
   const shown = filterLog(log, filter)
   const filtered = filter.party !== '' || filter.query.trim() !== ''
@@ -52,6 +54,11 @@ export function CommsLog({ log, agents, workspace, orchestratorName }: Props): R
               <button className="copy" title="Copy the reply" onClick={() => navigator.clipboard.writeText(m.body).catch(() => {})}>
                 Copy
               </button>
+              {agents.some((a) => a.id === m.from) && (
+                <button className="copy" title={`Brief ${m.from} next`} onClick={() => onReply(m.from)}>
+                  Reply
+                </button>
+              )}
               <p>{m.body}</p>
             </li>
           ) : (

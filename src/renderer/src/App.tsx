@@ -27,6 +27,7 @@ export function App(): React.JSX.Element {
   const [traffic, setTraffic] = useState<Record<string, Traffic>>({})
   const [generations, setGenerations] = useState<Record<string, number>>({})
   const [form, setForm] = useState<{ edit?: AgentConfig } | null>(null)
+  const [aim, setAim] = useState<{ to: string; n: number }>()
   const [now, setNow] = useState(Date.now())
   const [theme, setTheme] = usePref<Theme>('theme', 'control')
   const [sound, setSound] = usePref<boolean>('sound', false)
@@ -197,8 +198,13 @@ export function App(): React.JSX.Element {
       <main>
         <section className="left">
           <Floor agents={agents} statuses={statuses} unread={unread} flights={flights} selected={selected} theme={theme} onSelect={select} />
-          <Composer agents={agents} defaultTo={agents.find((a) => a.orchestrator)?.id ?? agents[0]?.id ?? ''} />
-          <CommsLog log={log} agents={agents} workspace={workspace} orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} />
+          <Composer agents={agents} defaultTo={agents.find((a) => a.orchestrator)?.id ?? agents[0]?.id ?? ''} aim={aim} />
+          <CommsLog
+            log={log}
+            agents={agents}
+            workspace={workspace}
+            onReply={(to) => setAim((a) => ({ to, n: (a?.n ?? 0) + 1 }))}
+            orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} />
         </section>
 
         <section className="right">
