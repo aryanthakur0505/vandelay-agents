@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react'
 import { AUTONOMY, MODELS, ROLE_TEMPLATES, SUGGESTED_MAX_AGENTS } from '@shared/templates'
+import { nextId } from '@shared/ids'
 import type { AgentConfig, AgentInput, Autonomy } from '@shared/types'
 
 interface Props {
   /** The agent being edited; hiring when absent. */
   agent?: AgentConfig
-  teamSize: number
+  /** Ids already on the team, to preview the new agent's id. */
+  takenIds: string[]
   onSave(input: AgentInput): void
   onCancel(): void
 }
 
 /** Hire a new agent (optionally from a role template) or edit an existing one. */
-export function AgentForm({ agent, teamSize, onSave, onCancel }: Props): React.JSX.Element {
+export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.JSX.Element {
   const [name, setName] = useState(agent?.name ?? '')
   const [role, setRole] = useState(agent?.role ?? '')
   const [command, setCommand] = useState(agent ? [agent.command, ...agent.args].join(' ') : 'claude')
@@ -75,6 +77,11 @@ export function AgentForm({ agent, teamSize, onSave, onCancel }: Props): React.J
         <label>
           Name
           <input autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder="George" />
+          {!editing && name.trim() && (
+            <small>
+              Others write to them as <code>to: {nextId(name, (id) => takenIds.includes(id))}</code>
+            </small>
+          )}
         </label>
         <label>
           Specialty
@@ -121,9 +128,9 @@ export function AgentForm({ agent, teamSize, onSave, onCancel }: Props): React.J
         <label className="check" title="Work on branch vandelay/<id> in a git worktree of its own, so it can't overwrite other agents' edits">
           <input type="checkbox" checked={worktree} onChange={(e) => setWorktree(e.target.checked)} /> Own git worktree
         </label>
-        {!editing && teamSize >= SUGGESTED_MAX_AGENTS && (
+        {!editing && takenIds.length >= SUGGESTED_MAX_AGENTS && (
           <p className="warn">
-            You already have {teamSize} agents. Each claude agent uses your account&apos;s tokens; past about {SUGGESTED_MAX_AGENTS} they mostly add
+            You already have {takenIds.length} agents. Each claude agent uses your account&apos;s tokens; past about {SUGGESTED_MAX_AGENTS} they mostly add
             cost, not speed.
           </p>
         )}

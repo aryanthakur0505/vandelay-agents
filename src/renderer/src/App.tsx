@@ -185,7 +185,7 @@ export function App(): React.JSX.Element {
       {form && (
         <AgentForm
           agent={form.edit}
-          teamSize={agents.length}
+          takenIds={agents.map((a) => a.id)}
           onCancel={() => setForm(null)}
           onSave={async (input) => {
             if (form.edit) await window.vandelay.updateAgent(form.edit.id, input)
