@@ -56,6 +56,12 @@ export const ROLE_TEMPLATES: RoleTemplate[] = [
     role: 'Product and marketing writer. Turns shipped features into release announcements, landing-page copy and store listings, with a story behind each one.',
     model: 'sonnet',
     autonomy: 'inherit'
+  },
+  {
+    name: 'Babu',
+    role: 'Accessibility and usability tester. Walks through the UI by keyboard and with a screen reader in mind, and reports what is confusing, unlabelled or unreachable. Changes nothing.',
+    model: 'sonnet',
+    autonomy: 'read-only'
   }
 ]
 
