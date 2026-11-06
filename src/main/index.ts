@@ -2,6 +2,7 @@ import { existsSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
 import { YOU } from '@shared/ids'
+import { IPC } from '@shared/ipc'
 import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
@@ -91,21 +92,21 @@ async function agentCwd(agent: AgentConfig): Promise<string> {
     await ensureWorktree(agent.cwd || workspace, dir, agent.id)
     return dir
   } catch (err) {
-    send('pty:data', agent.id, `\x1b[33mNo worktree (${(err as Error).message}); working in the workspace.\x1b[0m\r\n`)
+    send(IPC.ptyData, agent.id, `\x1b[33mNo worktree (${(err as Error).message}); working in the workspace.\x1b[0m\r\n`)
     return agent.cwd || workspace
   }
 }
 
 function wire(): void {
-  terminals.on('data', (id: string, data: string) => send('pty:data', id, data))
+  terminals.on('data', (id: string, data: string) => send(IPC.ptyData, id, data))
   terminals.on('exit', (id: string, code: number) => {
     // Removing the lock tells any mail watcher the dead session left behind to stop.
     rmSync(join(hive.agentDir(id), '.watcher'), { force: true })
-    send('pty:exit', id, code)
+    send(IPC.ptyExit, id, code)
   })
 
   hive.on('delivered', (msg: HiveMessage) => {
-    send('hive:delivered', msg)
+    send(IPC.hiveDelivered, msg)
     if (msg.to === YOU) return notifyHuman(msg)
     const agent = hive.get(msg.to)
     if (!agent || !terminals.isRunning(agent.id) || isShell(agent.command)) return
@@ -118,8 +119,8 @@ function wire(): void {
     }, WATCHER_GRACE_MS)
   })
 
-  ipcMain.handle('workspace', () => workspace)
-  ipcMain.handle('workspace:change', () => {
+  ipcMain.handle(IPC.workspace, () => workspace)
+  ipcMain.handle(IPC.workspaceChange, () => {
     const dir = askForWorkspace()
     if (!dir) return
     // The hive, router and terminals all belong to one workspace, so start over in the new one.
@@ -127,18 +128,18 @@ function wire(): void {
     app.relaunch({ args: relaunchArgs(dir) })
     app.exit(0)
   })
-  hive.on('roster', (agents: AgentConfig[]) => send('agents:roster', agents))
+  hive.on('roster', (agents: AgentConfig[]) => send(IPC.agentsRoster, agents))
   hive.on('removed', (id: string) => {
     terminals.stop(id)
     hooked.delete(id)
   })
 
-  ipcMain.handle('agents:list', () => hive.list())
-  ipcMain.handle('agents:add', (_e, input: AgentInput) => hive.add(input))
-  ipcMain.handle('agents:update', (_e, id: string, patch: Partial<AgentInput>) => hive.update(id, patch))
-  ipcMain.handle('agents:remove', (_e, id: string) => hive.remove(id))
+  ipcMain.handle(IPC.agentsList, () => hive.list())
+  ipcMain.handle(IPC.agentsAdd, (_e, input: AgentInput) => hive.add(input))
+  ipcMain.handle(IPC.agentsUpdate, (_e, id: string, patch: Partial<AgentInput>) => hive.update(id, patch))
+  ipcMain.handle(IPC.agentsRemove, (_e, id: string) => hive.remove(id))
   const starting = new Set<string>()
-  ipcMain.handle('agents:start', async (_e, id: string, cols: number, rows: number) => {
+  ipcMain.handle(IPC.agentsStart, async (_e, id: string, cols: number, rows: number) => {
     const agent = hive.get(id)
     if (!agent) throw new Error(`Unknown agent ${id}`)
     if (terminals.isRunning(id)) return terminals.resize(id, cols, rows)
@@ -157,12 +158,12 @@ function wire(): void {
       starting.delete(id)
     }
   })
-  ipcMain.handle('agents:stop', (_e, id: string) => terminals.stop(id))
-  ipcMain.handle('hive:send', (_e, to: string, body: string) => {
+  ipcMain.handle(IPC.agentsStop, (_e, id: string) => terminals.stop(id))
+  ipcMain.handle(IPC.hiveSend, (_e, to: string, body: string) => {
     hive.deliver(YOU, to, body)
   })
-  ipcMain.on('pty:write', (_e, id: string, data: string) => terminals.write(id, data))
-  ipcMain.on('pty:resize', (_e, id: string, cols: number, rows: number) => terminals.resize(id, cols, rows))
+  ipcMain.on(IPC.ptyWrite, (_e, id: string, data: string) => terminals.write(id, data))
+  ipcMain.on(IPC.ptyResize, (_e, id: string, cols: number, rows: number) => terminals.resize(id, cols, rows))
 }
 
 app.whenReady().then(() => {

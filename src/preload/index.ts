@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron'
+import { IPC } from '@shared/ipc'
 import type { AgentConfig, HiveMessage, VandelayApi } from '@shared/types'
 
 function listen<A extends unknown[]>(channel: string, cb: (...args: A) => void): () => void {
@@ -8,21 +9,21 @@ function listen<A extends unknown[]>(channel: string, cb: (...args: A) => void):
 }
 
 const api: VandelayApi = {
-  workspace: () => ipcRenderer.invoke('workspace'),
-  changeWorkspace: () => ipcRenderer.invoke('workspace:change'),
-  listAgents: () => ipcRenderer.invoke('agents:list'),
-  addAgent: (agent) => ipcRenderer.invoke('agents:add', agent),
-  updateAgent: (id, patch) => ipcRenderer.invoke('agents:update', id, patch),
-  removeAgent: (id) => ipcRenderer.invoke('agents:remove', id),
-  startAgent: (id, cols, rows) => ipcRenderer.invoke('agents:start', id, cols, rows),
-  stopAgent: (id) => ipcRenderer.invoke('agents:stop', id),
-  write: (id, data) => ipcRenderer.send('pty:write', id, data),
-  resize: (id, cols, rows) => ipcRenderer.send('pty:resize', id, cols, rows),
-  sendMessage: (to, body) => ipcRenderer.invoke('hive:send', to, body),
-  onData: (cb) => listen<[string, string]>('pty:data', cb),
-  onExit: (cb) => listen<[string, number]>('pty:exit', cb),
-  onDelivered: (cb) => listen<[HiveMessage]>('hive:delivered', cb),
-  onRoster: (cb) => listen<[AgentConfig[]]>('agents:roster', cb)
+  workspace: () => ipcRenderer.invoke(IPC.workspace),
+  changeWorkspace: () => ipcRenderer.invoke(IPC.workspaceChange),
+  listAgents: () => ipcRenderer.invoke(IPC.agentsList),
+  addAgent: (agent) => ipcRenderer.invoke(IPC.agentsAdd, agent),
+  updateAgent: (id, patch) => ipcRenderer.invoke(IPC.agentsUpdate, id, patch),
+  removeAgent: (id) => ipcRenderer.invoke(IPC.agentsRemove, id),
+  startAgent: (id, cols, rows) => ipcRenderer.invoke(IPC.agentsStart, id, cols, rows),
+  stopAgent: (id) => ipcRenderer.invoke(IPC.agentsStop, id),
+  write: (id, data) => ipcRenderer.send(IPC.ptyWrite, id, data),
+  resize: (id, cols, rows) => ipcRenderer.send(IPC.ptyResize, id, cols, rows),
+  sendMessage: (to, body) => ipcRenderer.invoke(IPC.hiveSend, to, body),
+  onData: (cb) => listen<[string, string]>(IPC.ptyData, cb),
+  onExit: (cb) => listen<[string, number]>(IPC.ptyExit, cb),
+  onDelivered: (cb) => listen<[HiveMessage]>(IPC.hiveDelivered, cb),
+  onRoster: (cb) => listen<[AgentConfig[]]>(IPC.agentsRoster, cb)
 }
 
 contextBridge.exposeInMainWorld('vandelay', api)
