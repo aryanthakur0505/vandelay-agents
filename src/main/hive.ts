@@ -319,6 +319,8 @@ export class Hive extends EventEmitter {
           if (to === HR) {
             renameSync(path, join(this.agentDir(agent.id), 'archive', `sent-${Date.now()}-${f}`))
             this.handleHr(agent.id, body)
+          } else if (to && to !== YOU && this.get(to) && this.looping(agent.id, to)) {
+            this.hold(path, agent.id, to, f)
           } else if (to && (to === YOU || this.get(to))) {
             this.deliver(agent.id, to, body)
             renameSync(path, join(this.agentDir(agent.id), 'archive', `sent-${Date.now()}-${f}`))
@@ -339,6 +341,25 @@ export class Hive extends EventEmitter {
         }
       }
     }
+  }
+
+  /** When each looping pair was last reported to the human, so one loop raises one notice. */
+  private loopNoticeAt = new Map<string, number>()
+
+  /** Parks mail from a looping pair in `held/` and tells the human, once per loop window. */
+  private hold(path: string, from: string, to: string, file: string): void {
+    mkdirSync(join(this.root, 'held'), { recursive: true })
+    renameSync(path, join(this.root, 'held', `${from}-${Date.now()}-${file}`))
+    const key = [from, to].sort().join('|')
+    const now = Date.now()
+    if (now - (this.loopNoticeAt.get(key) ?? 0) < LOOP_WINDOW_MS) return
+    this.loopNoticeAt.set(key, now)
+    this.deliver(
+      SYSTEM,
+      YOU,
+      `\`${from}\` and \`${to}\` sent each other more than ${LOOP_LIMIT} messages in a minute, so I'm holding their mail ` +
+        `in .vandelay/held/ until they slow down. They may be stuck replying to each other; check their terminals.`
+    )
   }
 
   /** The orchestrator hires and lets go of temps by mail; HR answers with what happened. */
