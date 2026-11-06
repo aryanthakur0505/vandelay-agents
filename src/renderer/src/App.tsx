@@ -50,6 +50,10 @@ export function App(): React.JSX.Element {
 
   useEffect(() => {
     window.vandelay.workspace().then(setWorkspace)
+    // Earlier traffic, so a restart doesn't wipe the log. Anything that arrived meanwhile stays on top.
+    window.vandelay.history().then((past) =>
+      setLog((live) => [...live, ...past.filter((p) => !live.some((m) => m.id === p.id))].slice(0, 200))
+    )
     window.vandelay.listAgents().then((list) => {
       setAgents(list)
       setSelected(list[0]?.id ?? null)
