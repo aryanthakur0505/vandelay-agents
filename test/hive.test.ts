@@ -302,6 +302,17 @@ describe('team management', () => {
     expect(h.get('bania')).toBeUndefined()
   })
 
+  it('fires a temp by name as well as by id', async () => {
+    const { h, mail } = makeHive()
+    post(h, 'art', 'to: hr\n---\nhire: Babu Bhatt\nrole: Runs the restaurant.')
+    h.startRouter(50)
+    await until(() => mail.length > 0)
+    expect(h.get('babu-bhatt')?.temp).toBe(true)
+    post(h, 'art', 'to: hr\n---\nfire: Babu Bhatt')
+    await until(() => mail.length > 1)
+    expect(mail[1]).toBe('vandelay->art: Let go of temp `babu-bhatt`.')
+  })
+
   it('only lets the orchestrator fire its own temps', async () => {
     const { h, mail } = makeHive()
     post(h, 'art', 'to: hr\n---\nfire: kramer')
