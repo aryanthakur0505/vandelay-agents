@@ -214,10 +214,15 @@ export class Hive extends EventEmitter {
     const agent = this.get(id)
     if (!agent) throw new Error(`Unknown agent ${id}`)
     const { orchestrator: _o, temp: _t, hiredBy: _h, ...allowed } = patch
+    if (allowed.name !== undefined && !allowed.name.trim()) throw new Error('An agent needs a name.')
+    if (allowed.name !== undefined) allowed.name = allowed.name.trim()
+    const oldName = agent.name
     const roleChanged = allowed.role !== undefined && allowed.role !== agent.role
     Object.assign(agent, allowed)
     this.ensureAgentDirs(agent)
     this.save()
+    // The id stays the same, so mail still reaches them; the roster just shows the new name.
+    if (agent.name !== oldName) this.announce(`\`${id}\` ${oldName} is now called ${agent.name}. Same id.`, id)
     if (roleChanged) this.announce(`\`${id}\` ${agent.name} has a new specialty: ${agent.role || 'none'}`, id)
     return agent
   }
