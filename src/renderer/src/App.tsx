@@ -10,6 +10,7 @@ import { FLIGHT_MS, Floor, type Flight } from './Floor'
 import { clock, time } from './format'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
+import { TermBar } from './TermBar'
 import { UnitCards, type Traffic } from './UnitCards'
 
 const APP_START = Date.now()
@@ -228,23 +229,13 @@ export function App(): React.JSX.Element {
             onSelect={select}
           />
           {current && (
-            <div className="term-bar">
-              <div className="term-info">
-                <code>
-                  {current.command} {current.args.join(' ')}
-                  {current.model && <span className="muted"> · {current.model}</span>}
-                  {current.autonomy && current.autonomy !== 'inherit' && <span className="muted"> · {current.autonomy}</span>}
-                  {current.worktree && <span className="muted"> · worktree vandelay/{current.id}</span>}
-                </code>
-                <span className="role" title={current.role}>
-                  {current.orchestrator ? 'Orchestrator: routes your briefs to the team.' : current.role || 'No specialty set.'}
-                </span>
-                {traffic[current.id]?.task && <span className="task">Last task: {traffic[current.id]!.task}</span>}
-              </div>
-              <button onClick={() => setForm({ edit: current })}>Edit</button>
-              {!current.orchestrator && <button onClick={() => fire(current)}>Let go</button>}
-              <button onClick={() => restart(current.id)}>Restart</button>
-            </div>
+            <TermBar
+              agent={current}
+              task={traffic[current.id]?.task}
+              onEdit={() => setForm({ edit: current })}
+              onFire={() => fire(current)}
+              onRestart={() => restart(current.id)}
+            />
           )}
           <div className="terminals">
             {agents.map((a) => (
