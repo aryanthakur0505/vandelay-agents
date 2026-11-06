@@ -27,6 +27,7 @@
     "src/preload/**/*",
     "src/shared/**/*",
     "src/renderer/src/status.ts",
+    "src/renderer/src/format.ts",
     "vitest.config.ts",
     "test/**/*"
   ]
