@@ -242,6 +242,34 @@ export class Hive extends EventEmitter {
     return msg
   }
 
+  /**
+   * The latest delivered messages, newest first, read back from the files on disk so the comms log
+   * survives a restart. Delivered mail sits in `you/` or in an agent's inbox until it is handled, then
+   * in its archive (where `sent-*` files are the sender's own copies, not deliveries).
+   */
+  history(limit = 200): HiveMessage[] {
+    const dirs = [join(this.root, YOU), ...this.agents.flatMap((a) => ['inbox', 'archive'].map((d) => join(this.agentDir(a.id), d)))]
+    const found: HiveMessage[] = []
+    for (const dir of dirs) {
+      let files: string[]
+      try {
+        files = readdirSync(dir).filter((f) => f.endsWith('.md') && !f.startsWith('sent-'))
+      } catch {
+        continue
+      }
+      // Names start with the delivery time, so the newest `limit` per folder are all that can matter.
+      for (const f of files.sort().reverse().slice(0, limit)) {
+        try {
+          const msg = parseDelivered(readFileSync(join(dir, f), 'utf8'), join(dir, f))
+          if (msg) found.push(msg)
+        } catch {
+          // Moved or locked while we looked; skip it.
+        }
+      }
+    }
+    return found.sort((a, b) => b.at - a.at || b.id.localeCompare(a.id)).slice(0, limit)
+  }
+
   /** The same message to every agent except the sender, e.g. "stop what you're doing". */
   broadcast(from: string, body: string): HiveMessage[] {
     return this.agents.filter((a) => a.id !== from).map((a) => this.deliver(from, a.id, body))
