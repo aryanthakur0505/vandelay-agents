@@ -216,6 +216,8 @@ export function App(): React.JSX.Element {
               onEdit={() => setForm({ edit: current })}
               onFire={() => fire(current)}
               onRestart={() => restart(current.id)}
+              running={statuses[current.id] !== 'exited'}
+              onStop={() => window.vandelay.stopAgent(current.id)}
             />
           )}
           <div className="terminals">
