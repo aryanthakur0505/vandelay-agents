@@ -36,6 +36,8 @@ export function App(): React.JSX.Element {
   const lastOutput = useRef<Record<string, number>>({})
   const upSince = useRef<Record<string, number>>({})
   const exited = useRef<Set<string>>(new Set())
+  const selectedRef = useRef(selected)
+  selectedRef.current = selected
   const soundRef = useRef(sound)
   soundRef.current = sound
 
@@ -73,7 +75,8 @@ export function App(): React.JSX.Element {
     const offDelivered = window.vandelay.onDelivered((msg) => {
       setLog((l) => [msg, ...l].slice(0, 200))
       setRouted((n) => n + 1)
-      setUnread((u) => ({ ...u, [msg.to]: (u[msg.to] ?? 0) + 1 }))
+      // Mail for the agent you're looking at isn't unread: you can see its terminal.
+      if (msg.to !== selectedRef.current) setUnread((u) => ({ ...u, [msg.to]: (u[msg.to] ?? 0) + 1 }))
       // Notices from the app aren't work, so they don't count as the agent's latest task.
       const task = msg.from === SYSTEM ? undefined : msg.body.split('\n')[0]
       setTraffic((t) => ({
