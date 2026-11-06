@@ -263,6 +263,15 @@ describe('team management', () => {
     expect(h.add({ name: ' Babs ', command: ' claude ', args: [], cwd: '' })).toMatchObject({ id: 'babs', name: 'Babs', command: 'claude' })
   })
 
+  it('keeps the id when an agent is renamed, and tells the orchestrator', () => {
+    const { h, mail } = makeHive()
+    h.update('kramer', { name: ' Cosmo ' })
+    expect(h.get('kramer')!.name).toBe('Cosmo')
+    expect(mail).toEqual(['vandelay->art: `kramer` Kramer is now called Cosmo. Same id.'])
+    expect(readFileSync(join(h.root, 'ROSTER.md'), 'utf8')).toContain('`kramer` **Cosmo**')
+    expect(() => h.update('kramer', { name: '' })).toThrow(/name/)
+  })
+
   it('never hires a second orchestrator', () => {
     const { h } = makeHive()
     const boss = h.add({ name: 'Steinbrenner', command: 'x', args: [], cwd: '', orchestrator: true })
