@@ -10,6 +10,8 @@ floor. Art Vandelay, the orchestrator, takes your brief and routes the work to e
 
 *Electron · React · TypeScript · electron-vite · xterm.js · node-pty*
 
+![The control room: robots on the floor, unit cards, a terminal and the comms log](docs/screenshot.png)
+
 ## Why
 
 One Claude Code session does one thing at a time, and you drive every step. Vandelay Agents puts
