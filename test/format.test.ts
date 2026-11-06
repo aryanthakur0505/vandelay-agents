@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addressLabel, clock, time } from '../src/renderer/src/format'
+import { addressLabel, badgeCount, clock, time } from '../src/renderer/src/format'
 
 describe('clock', () => {
   it('formats durations as hh:mm:ss', () => {
@@ -22,5 +22,11 @@ describe('time', () => {
 describe('addressLabel', () => {
   it('names the human and the app, and shouts agent ids', () => {
     expect([addressLabel('you'), addressLabel('vandelay'), addressLabel('jackie-chiles')]).toEqual(['YOU', 'SYSTEM', 'JACKIE-CHILES'])
+  })
+})
+
+describe('badgeCount', () => {
+  it('caps at 99+', () => {
+    expect([badgeCount(1), badgeCount(99), badgeCount(100)]).toEqual(['1', '99', '99+'])
   })
 })
