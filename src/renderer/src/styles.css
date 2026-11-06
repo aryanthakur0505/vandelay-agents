@@ -358,6 +358,12 @@ main {
   border-radius: 0 var(--radius) var(--radius) 0;
 }
 
+.log li.to-you .copy {
+  float: right;
+  padding: 0 6px;
+  font-size: 10px;
+}
+
 .log li.to-you p {
   margin: 4px 0 0;
   white-space: pre-wrap;

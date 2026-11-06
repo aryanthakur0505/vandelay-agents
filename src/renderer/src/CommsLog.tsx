@@ -40,6 +40,9 @@ export function CommsLog({ log, agents, orchestratorName }: Props): React.JSX.El
             // Replies to the human are the point of the whole thing, so show them in full.
             <li key={m.file} className="to-you">
               <span className="ts">[{time(m.at)}]</span> <b>{addressLabel(m.from)}</b> ▸ <b>YOU</b>
+              <button className="copy" title="Copy the reply" onClick={() => navigator.clipboard.writeText(m.body).catch(() => {})}>
+                Copy
+              </button>
               <p>{m.body}</p>
             </li>
           ) : (
