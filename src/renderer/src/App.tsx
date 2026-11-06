@@ -3,6 +3,7 @@ import type { AgentConfig, HiveMessage } from '@shared/types'
 import { AgentForm } from './AgentForm'
 import { AgentTerminal } from './AgentTerminal'
 import { BootScreen } from './BootScreen'
+import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
 import { clock, time } from './format'
 import { beep, usePref } from './prefs'
@@ -294,41 +295,6 @@ export function App(): React.JSX.Element {
           </div>
         </section>
       </main>
-    </div>
-  )
-}
-
-function Composer({ agents, defaultTo }: { agents: AgentConfig[]; defaultTo: string }): React.JSX.Element {
-  const [to, setTo] = useState('')
-  const [body, setBody] = useState('')
-  const target = agents.some((a) => a.id === to) ? to : defaultTo
-
-  const send = async (): Promise<void> => {
-    if (!body.trim() || !target) return
-    await window.vandelay.sendMessage(target, body)
-    setBody('')
-  }
-
-  return (
-    <div className="composer">
-      <select value={target} onChange={(e) => setTo(e.target.value)}>
-        {agents.map((a) => (
-          <option key={a.id} value={a.id}>
-            To: {a.name}
-          </option>
-        ))}
-      </select>
-      <textarea
-        value={body}
-        placeholder={`Brief ${agents.find((a) => a.id === target)?.name ?? 'an agent'} (Ctrl+Enter to send)`}
-        onChange={(e) => setBody(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send()
-        }}
-      />
-      <button className="primary" onClick={send} disabled={!body.trim()}>
-        Send
-      </button>
     </div>
   )
 }
