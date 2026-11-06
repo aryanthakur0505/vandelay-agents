@@ -268,12 +268,15 @@ by name. If the app was itself started from inside a Claude Code session, that s
 ```
 src/
   main/        Electron main process: window, IPC, PTYs (terminals.ts), hive and router (hive.ts),
-               claude hooks (claudeHooks.ts, hooks/), worktrees.ts, workspace.ts
+               claude hooks (claudeHooks.ts, hooks/), worktrees.ts, workspace.ts, windowState.ts
   preload/     the typed bridge exposed as window.vandelay
-  renderer/    React UI: floor canvas, terminals, composer
-  shared/      types shared by all three
+  renderer/    React UI: floor canvas, terminals, composer, comms log, hire form
+  shared/      types, IPC channel names and special addresses shared by all three
 test/          vitest unit tests
+docs/          ARCHITECTURE.md: how mail moves and who owns what
 ```
+
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) walks through the processes and the life of a message.
 
 ## Contributing
 
