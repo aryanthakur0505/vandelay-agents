@@ -297,6 +297,34 @@ main {
   font-size: 11px;
 }
 
+.comms-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 0 0;
+}
+
+.comms-bar .panel-title {
+  flex: 1;
+  padding-top: 0;
+}
+
+.comms-bar select,
+.comms-bar input,
+.comms-bar button {
+  padding: 2px 6px;
+  font-size: 11px;
+}
+
+.comms-bar input {
+  width: 140px;
+}
+
+.comms-count {
+  padding: 0 10px 4px;
+  font-size: 11px;
+}
+
 .log {
   list-style: none;
   margin: 0;
