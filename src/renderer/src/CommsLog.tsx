@@ -20,6 +20,12 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply }: 
   const [filter, setFilter] = useState<CommsFilter>(NO_FILTER)
   const shown = filterLog(log, filter)
   const filtered = filter.party !== '' || filter.query.trim() !== ''
+  /** A name in the log: click it to see only that party's traffic. */
+  const who = (id: string): React.JSX.Element => (
+    <b className="who" title={`Only ${addressLabel(id)}'s messages`} onClick={() => setFilter({ ...filter, party: id })}>
+      {addressLabel(id)}
+    </b>
+  )
 
   return (
     <div className="comms">
@@ -34,7 +40,13 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply }: 
             </option>
           ))}
         </select>
-        <input id="comms-search" type="search" value={filter.query} placeholder="Search" onChange={(e) => setFilter({ ...filter, query: e.target.value })} />
+        <input
+          id="comms-search"
+          type="search"
+          value={filter.query}
+          placeholder="Search"
+          onChange={(e) => setFilter({ ...filter, query: e.target.value })}
+        />
         <button
           disabled={shown.length === 0}
           title="Save the messages shown as a Markdown file"
@@ -50,7 +62,7 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply }: 
           m.to === YOU ? (
             // Replies to the human are the point of the whole thing, so show them in full.
             <li key={m.file} className="to-you">
-              <span className="ts">[{time(m.at)}]</span> <b>{addressLabel(m.from)}</b> ▸ <b>YOU</b>
+              <span className="ts">[{time(m.at)}]</span> {who(m.from)} ▸ <b>YOU</b>
               <button className="copy" title="Copy the reply" onClick={() => navigator.clipboard.writeText(m.body).catch(() => {})}>
                 Copy
               </button>
@@ -63,8 +75,7 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply }: 
             </li>
           ) : (
             <li key={m.file} title={m.body} className={m.from === SYSTEM ? 'system' : ''}>
-              <span className="ts">[{time(m.at)}]</span> <b>{addressLabel(m.from)}</b> ▸ <b>{addressLabel(m.to)}</b>{' '}
-              <span className="muted">{m.body.slice(0, 90)}</span>
+              <span className="ts">[{time(m.at)}]</span> {who(m.from)} ▸ {who(m.to)} <span className="muted">{m.body.slice(0, 90)}</span>
             </li>
           )
         )}

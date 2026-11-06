@@ -345,6 +345,14 @@ main {
   text-overflow: ellipsis;
 }
 
+.log .who {
+  cursor: pointer;
+}
+
+.log .who:hover {
+  text-decoration: underline;
+}
+
 .log .ts {
   color: var(--muted);
 }
