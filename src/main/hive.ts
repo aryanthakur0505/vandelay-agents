@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { HR, RESERVED_IDS, SYSTEM, YOU } from '@shared/ids'
 import { MAX_TEMPS, ROLE_TEMPLATES } from '@shared/templates'
 import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
 import { findExecutable } from './terminals'
@@ -9,11 +10,6 @@ const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572
 
 const SHELL = process.platform === 'win32' ? 'powershell.exe' : process.env.SHELL || 'bash'
 
-/** The app itself, as a sender: team updates and HR replies come from here. */
-export const SYSTEM = 'vandelay'
-/** Agents write `to: hr` to hire or let go of temps. */
-export const HR = 'hr'
-const RESERVED = new Set(['you', SYSTEM, HR])
 
 function templateRole(name: string): string | undefined {
   return ROLE_TEMPLATES.find((t) => t.name.toLowerCase() === name.toLowerCase())?.role
@@ -142,7 +138,7 @@ export class Hive extends EventEmitter {
   init(): void {
     mkdirSync(join(this.root, 'agents'), { recursive: true })
     mkdirSync(join(this.root, 'dead-letter'), { recursive: true })
-    mkdirSync(join(this.root, 'you'), { recursive: true })
+    mkdirSync(join(this.root, YOU), { recursive: true })
     writeFileSync(join(this.root, 'PROTOCOL.md'), PROTOCOL)
     // Keep the hive out of the workspace's git status, whatever repository it sits in.
     writeFileSync(join(this.root, '.gitignore'), '*\n')
@@ -182,7 +178,7 @@ export class Hive extends EventEmitter {
   add(input: AgentInput, announce = true): AgentConfig {
     const base = slug(input.name)
     let id = base
-    for (let n = 2; this.get(id) || RESERVED.has(id); n++) id = `${base}-${n}`
+    for (let n = 2; this.get(id) || RESERVED_IDS.has(id); n++) id = `${base}-${n}`
     // A second orchestrator would make routing ambiguous.
     const agent: AgentConfig = { ...input, orchestrator: undefined, id, color: PALETTE[this.agents.length % PALETTE.length] }
     this.agents.push(agent)
@@ -236,7 +232,7 @@ export class Hive extends EventEmitter {
   deliver(from: string, to: string, body: string): HiveMessage {
     const at = Date.now()
     const msgId = `${at}-${String(this.seq++ % 1000).padStart(3, '0')}-${from}`
-    const dir = to === 'you' ? join(this.root, 'you') : join(this.agentDir(to), 'inbox')
+    const dir = to === YOU ? join(this.root, YOU) : join(this.agentDir(to), 'inbox')
     const file = join(dir, `${msgId}.md`)
     const text = `from: ${from}\nto: ${to}\nat: ${new Date(at).toISOString()}\n---\n${body.trim()}\n`
     writeFileSync(file + '.tmp', text)
@@ -272,7 +268,7 @@ export class Hive extends EventEmitter {
           if (to === HR) {
             renameSync(path, join(this.agentDir(agent.id), 'archive', `sent-${Date.now()}-${f}`))
             this.handleHr(agent.id, body)
-          } else if (to && (to === 'you' || this.get(to))) {
+          } else if (to && (to === YOU || this.get(to))) {
             this.deliver(agent.id, to, body)
             renameSync(path, join(this.agentDir(agent.id), 'archive', `sent-${Date.now()}-${f}`))
           } else {

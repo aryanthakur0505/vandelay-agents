@@ -1,6 +1,7 @@
 import { existsSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
+import { YOU } from '@shared/ids'
 import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
@@ -105,7 +106,7 @@ function wire(): void {
 
   hive.on('delivered', (msg: HiveMessage) => {
     send('hive:delivered', msg)
-    if (msg.to === 'you') return notifyHuman(msg)
+    if (msg.to === YOU) return notifyHuman(msg)
     const agent = hive.get(msg.to)
     if (!agent || !terminals.isRunning(agent.id) || isShell(agent.command)) return
     // Other CLIs get the prompt typed in.
@@ -158,7 +159,7 @@ function wire(): void {
   })
   ipcMain.handle('agents:stop', (_e, id: string) => terminals.stop(id))
   ipcMain.handle('hive:send', (_e, to: string, body: string) => {
-    hive.deliver('you', to, body)
+    hive.deliver(YOU, to, body)
   })
   ipcMain.on('pty:write', (_e, id: string, data: string) => terminals.write(id, data))
   ipcMain.on('pty:resize', (_e, id: string, cols: number, rows: number) => terminals.resize(id, cols, rows))
