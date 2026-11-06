@@ -176,8 +176,9 @@ A new hive starts with the full staff of eight, all running `claude` if it is on
 | **Jackie Chiles** | Licences and dependencies. | Haiku, read-only |
 
 An idle agent costs nothing; tokens are spent only when Art hands it work. **Let go** of anyone you
-don't need, or **hire** more with **+ Hire**: start from a role template or write your own
-specialty. For claude agents you can also choose:
+don't need, or **hire** more with **+ Hire**: start from a role template (everyone above, plus
+**J. Peterman** for product and marketing copy and **Babu**, a read-only accessibility tester) or
+write your own specialty. For claude agents you can also choose:
 
 - **Model**: your default, Opus, Sonnet or Haiku. Cheaper models suit simple roles.
 - **Autonomy**: your Claude Code default, read-only (`plan`), ask before every action, edit files
