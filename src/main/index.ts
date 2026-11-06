@@ -6,7 +6,7 @@ import { IPC } from '@shared/ipc'
 import type { AgentConfig, AgentFile, AgentInput, HiveMessage } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
-import { isShell, Terminals } from './terminals'
+import { findExecutable, isShell, Terminals } from './terminals'
 import { askForWorkspace, chooseWorkspace, relaunchArgs } from './workspace'
 import { DEFAULT_SIZE, loadWindowState, MIN_SIZE, saveWindowState, usableBounds } from './windowState'
 import { ensureWorktree } from './worktrees'
@@ -129,6 +129,7 @@ function wire(): void {
   })
 
   ipcMain.handle(IPC.workspace, () => workspace)
+  ipcMain.handle(IPC.commandExists, (_e, command: string) => Boolean(command.trim() && findExecutable(command.trim())))
   ipcMain.handle(IPC.saveText, async (_e, defaultName: string, text: string) => {
     const { canceled, filePath } = await dialog.showSaveDialog(win!, {
       defaultPath: join(workspace, basename(defaultName)),

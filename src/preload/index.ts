@@ -12,6 +12,7 @@ const api: VandelayApi = {
   workspace: () => ipcRenderer.invoke(IPC.workspace),
   changeWorkspace: () => ipcRenderer.invoke(IPC.workspaceChange),
   saveText: (defaultName, text) => ipcRenderer.invoke(IPC.saveText, defaultName, text),
+  commandExists: (command) => ipcRenderer.invoke(IPC.commandExists, command),
   listAgents: () => ipcRenderer.invoke(IPC.agentsList),
   addAgent: (agent) => ipcRenderer.invoke(IPC.agentsAdd, agent),
   updateAgent: (id, patch) => ipcRenderer.invoke(IPC.agentsUpdate, id, patch),

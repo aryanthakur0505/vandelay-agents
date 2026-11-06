@@ -48,6 +48,8 @@ export interface VandelayApi {
   workspace(): Promise<string>
   /** Asks where to save, then writes the text there. Resolves to the path, or null if cancelled. */
   saveText(defaultName: string, text: string): Promise<string | null>
+  /** Whether a command can be found on PATH (or at the path given), for the hire form. */
+  commandExists(command: string): Promise<boolean>
   /** Pick another folder; the app restarts there. */
   changeWorkspace(): Promise<void>
   listAgents(): Promise<AgentConfig[]>
