@@ -93,6 +93,7 @@ npm run dev     # opens the app; the UI hot-reloads
 | `npm test` | unit tests (vitest): router, team and temps, mail hook, claude settings, worktrees |
 | `npm run test:watch` | the same tests, rerun on every save |
 | `npm run typecheck` | TypeScript checks for all three processes |
+| `npm run format` / `npm run format:check` | format the code with Prettier, or only check it (CI does) |
 | `npm run build` / `npm run preview` | production build, and running it |
 | `npm run dist` | an installer in `release/` (NSIS on Windows, dmg on macOS, AppImage on Linux) |
 | `npm run dist:dir` | the unpacked app only, quicker to test |
@@ -276,8 +277,8 @@ test/          vitest unit tests
 
 ## Contributing
 
-Issues and pull requests are welcome. Before opening a PR, run `npm run typecheck` and `npm test`;
-CI runs both, plus a build, on Windows, macOS and Linux. Keep code and art original: no assets or
+Issues and pull requests are welcome. Before opening a PR, run `npm run format`, `npm run typecheck`
+and `npm test`; CI checks all three, plus a build, on Windows, macOS and Linux. Keep code and art original: no assets or
 code copied from other projects.
 
 To publish a release, bump `version` in `package.json`, move the "Unreleased" notes in
