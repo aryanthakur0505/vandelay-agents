@@ -50,6 +50,12 @@ export const ROLE_TEMPLATES: RoleTemplate[] = [
     role: 'Licences and dependencies. Checks licences, keeps dependencies current and flags anything risky. Outrageous, egregious, preposterous findings only.',
     model: 'haiku',
     autonomy: 'read-only'
+  },
+  {
+    name: 'J. Peterman',
+    role: 'Product and marketing writer. Turns shipped features into release announcements, landing-page copy and store listings, with a story behind each one.',
+    model: 'sonnet',
+    autonomy: 'inherit'
   }
 ]
 
