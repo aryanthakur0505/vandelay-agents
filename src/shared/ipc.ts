@@ -10,6 +10,7 @@ export const IPC = {
   agentsStop: 'agents:stop',
   agentsRoster: 'agents:roster',
   hiveSend: 'hive:send',
+  hiveBroadcast: 'hive:broadcast',
   hiveDelivered: 'hive:delivered',
   ptyWrite: 'pty:write',
   ptyResize: 'pty:resize',

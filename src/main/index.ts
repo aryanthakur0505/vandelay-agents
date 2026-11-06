@@ -162,6 +162,9 @@ function wire(): void {
   ipcMain.handle(IPC.hiveSend, (_e, to: string, body: string) => {
     hive.deliver(YOU, to, body)
   })
+  ipcMain.handle(IPC.hiveBroadcast, (_e, body: string) => {
+    hive.broadcast(YOU, body)
+  })
   ipcMain.on(IPC.ptyWrite, (_e, id: string, data: string) => terminals.write(id, data))
   ipcMain.on(IPC.ptyResize, (_e, id: string, cols: number, rows: number) => terminals.resize(id, cols, rows))
 }
