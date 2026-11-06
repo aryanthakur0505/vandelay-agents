@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { AgentConfig } from '@shared/types'
+import { badgeCount } from './format'
 import { statusColors, unitTag, type AgentStatus, type Theme } from './status'
 
 export interface Flight {
@@ -137,7 +138,7 @@ function officeBadge(ctx: CanvasRenderingContext2D, a: AgentConfig, s: Spot, sta
     ctx.strokeRect(s.x + 22, s.y - 32, 18, 12)
     ctx.fillStyle = '#8a3b2a'
     ctx.font = 'bold 10px Consolas, monospace'
-    ctx.fillText(String(unread), s.x + 31, s.y - 22)
+    ctx.fillText(badgeCount(unread), s.x + 31, s.y - 22)
   }
   if (selected) {
     ctx.strokeStyle = a.color
@@ -354,7 +355,7 @@ function controlBadge(
     ctx.strokeRect(s.x + 22.5, s.y - 37.5, 21, 12)
     ctx.fillStyle = CYAN
     ctx.font = `bold 9px ${MONO}`
-    ctx.fillText(`▼${unread}`, s.x + 33, s.y - 28)
+    ctx.fillText(`▼${badgeCount(unread)}`, s.x + 33, s.y - 28)
   }
   if (selected) {
     ctx.strokeStyle = CYAN
