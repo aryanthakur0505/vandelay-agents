@@ -1,6 +1,6 @@
-import { existsSync, rmSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
+import { existsSync, rmSync, writeFileSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
+import { app, BrowserWindow, dialog, ipcMain, Notification, shell } from 'electron'
 import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
 import type { AgentConfig, AgentFile, AgentInput, HiveMessage } from '@shared/types'
@@ -120,6 +120,15 @@ function wire(): void {
   })
 
   ipcMain.handle(IPC.workspace, () => workspace)
+  ipcMain.handle(IPC.saveText, async (_e, defaultName: string, text: string) => {
+    const { canceled, filePath } = await dialog.showSaveDialog(win!, {
+      defaultPath: join(workspace, basename(defaultName)),
+      filters: [{ name: 'Markdown', extensions: ['md'] }]
+    })
+    if (canceled || !filePath) return null
+    writeFileSync(filePath, text)
+    return filePath
+  })
   ipcMain.handle(IPC.workspaceChange, () => {
     const dir = askForWorkspace()
     if (!dir) return

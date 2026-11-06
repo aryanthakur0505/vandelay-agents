@@ -46,6 +46,8 @@ export type AgentFile = 'memory.md' | 'ROLE.md'
 
 export interface VandelayApi {
   workspace(): Promise<string>
+  /** Asks where to save, then writes the text there. Resolves to the path, or null if cancelled. */
+  saveText(defaultName: string, text: string): Promise<string | null>
   /** Pick another folder; the app restarts there. */
   changeWorkspace(): Promise<void>
   listAgents(): Promise<AgentConfig[]>

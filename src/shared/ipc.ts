@@ -2,6 +2,7 @@
 export const IPC = {
   workspace: 'workspace',
   workspaceChange: 'workspace:change',
+  saveText: 'save-text',
   agentsList: 'agents:list',
   agentsAdd: 'agents:add',
   agentsUpdate: 'agents:update',
