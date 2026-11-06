@@ -7,9 +7,9 @@ import { BootScreen } from './BootScreen'
 import { CommsLog } from './CommsLog'
 import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
-import { clock, time } from './format'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
+import { StatusBar } from './StatusBar'
 import { TermBar } from './TermBar'
 import { UnitCards, type Traffic } from './UnitCards'
 
@@ -163,26 +163,7 @@ export function App(): React.JSX.Element {
             </small>
           </div>
         </div>
-        <dl className="stats">
-          <div>
-            <dt>Units online</dt>
-            <dd>
-              {online}/{agents.length}
-            </dd>
-          </div>
-          <div>
-            <dt>Packets routed</dt>
-            <dd>{routed}</dd>
-          </div>
-          <div>
-            <dt>Uptime</dt>
-            <dd>{clock(now - APP_START)}</dd>
-          </div>
-          <div>
-            <dt>Clock</dt>
-            <dd>{time(now)}</dd>
-          </div>
-        </dl>
+        <StatusBar online={online} total={agents.length} routed={routed} uptimeMs={now - APP_START} now={now} />
         <div className="header-actions">
           <button title="Sound on new messages" className={sound ? 'on' : ''} onClick={() => setSound(!sound)}>
             {sound ? 'Sound on' : 'Sound off'}
