@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AgentConfig } from '@shared/types'
+import { remember, step } from './briefHistory'
+import { usePref } from './prefs'
 
 /** The composer's "To:" value for a broadcast; can't clash with an agent id, which has no `*`. */
 const EVERYONE = '*'
@@ -16,6 +18,9 @@ interface Props {
 export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
   const [to, setTo] = useState('')
   const [body, setBody] = useState('')
+  const [history, setHistory] = usePref<string[]>('briefs', [])
+  /** Which past brief is showing: -1 while writing a new one. */
+  const [browsing, setBrowsing] = useState(-1)
   const box = useRef<HTMLTextAreaElement>(null)
   useEffect(() => {
     if (!aim) return
@@ -28,6 +33,8 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
     if (!body.trim() || !target) return
     if (target === EVERYONE) await window.vandelay.broadcast(body)
     else await window.vandelay.sendMessage(target, body)
+    setHistory(remember(history, body))
+    setBrowsing(-1)
     setBody('')
   }
 
@@ -45,9 +52,20 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
         ref={box}
         value={body}
         placeholder={`Brief ${target === EVERYONE ? 'every agent' : (agents.find((a) => a.id === target)?.name ?? 'an agent')} (Ctrl+Enter to send)`}
-        onChange={(e) => setBody(e.target.value)}
+        onChange={(e) => {
+          setBody(e.target.value)
+          setBrowsing(-1)
+        }}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) send()
+          if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) return void send()
+          // Up and Down recall earlier briefs, like a shell, but only while the box is empty or still
+          // showing a recalled brief, so they keep moving the caret in anything you are writing.
+          const arrow = e.key === 'ArrowUp' ? 'older' : e.key === 'ArrowDown' ? 'newer' : null
+          if (!arrow || (body !== '' && browsing === -1)) return
+          e.preventDefault()
+          const next = step(history, browsing, arrow)
+          setBrowsing(next)
+          setBody(next === -1 ? '' : history[next])
         }}
       />
       <button className="primary" onClick={send} disabled={!body.trim()}>
