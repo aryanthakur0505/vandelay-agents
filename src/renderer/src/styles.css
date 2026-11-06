@@ -282,6 +282,17 @@ main {
   border-top: 1px solid var(--line);
 }
 
+.composer {
+  flex-wrap: wrap;
+}
+
+.composer-error {
+  flex-basis: 100%;
+  margin: 0;
+  color: #ff4d5e;
+  font-size: 12px;
+}
+
 .composer textarea {
   flex: 1;
   height: 54px;

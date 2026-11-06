@@ -31,16 +31,21 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
   const target = to === EVERYONE || agents.some((a) => a.id === to) ? to : defaultTo
 
   const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
   const send = async (): Promise<void> => {
     if (!body.trim() || !target || sending) return
     // One brief at a time, so a double Ctrl+Enter can't send it twice.
     setSending(true)
+    setError('')
     try {
       if (target === EVERYONE) await window.vandelay.broadcast(body)
       else await window.vandelay.sendMessage(target, body)
       setHistory(remember(history, body))
       setBrowsing(-1)
       setBody('')
+    } catch (err) {
+      // The brief stays in the box, so nothing is lost.
+      setError(`Not sent: ${String((err as Error).message ?? err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')}`)
     } finally {
       setSending(false)
     }
@@ -80,6 +85,7 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
       <button className="primary" onClick={send} disabled={!body.trim() || sending}>
         Send
       </button>
+      {error && <p className="composer-error">{error}</p>}
     </div>
   )
 }
