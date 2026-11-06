@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- The comms log keeps the last 200 messages across restarts, read back from the hive's files.
 - Terminal toolbar: **Stop** and **Start** an agent without letting it go, and open its **Folder**
   or **Memory** notes.
 - **To: Everyone** in the composer sends one brief to every agent.
