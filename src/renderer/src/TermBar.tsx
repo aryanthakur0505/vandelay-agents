@@ -31,6 +31,9 @@ export function TermBar({ agent, task, running, onEdit, onFire, onRestart, onSto
       <button onClick={() => window.vandelay.openAgent(agent.id)} title="Open this agent's inbox, outbox, archive and notes">
         Folder
       </button>
+      <button onClick={() => window.vandelay.openAgent(agent.id, 'memory.md')} title="What this agent has written down to remember">
+        Memory
+      </button>
       <button onClick={onEdit}>Edit</button>
       {!agent.orchestrator && <button onClick={onFire}>Let go</button>}
       {running && (
