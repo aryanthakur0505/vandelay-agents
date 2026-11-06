@@ -29,13 +29,20 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
   }, [aim])
   const target = to === EVERYONE || agents.some((a) => a.id === to) ? to : defaultTo
 
+  const [sending, setSending] = useState(false)
   const send = async (): Promise<void> => {
-    if (!body.trim() || !target) return
-    if (target === EVERYONE) await window.vandelay.broadcast(body)
-    else await window.vandelay.sendMessage(target, body)
-    setHistory(remember(history, body))
-    setBrowsing(-1)
-    setBody('')
+    if (!body.trim() || !target || sending) return
+    // One brief at a time, so a double Ctrl+Enter can't send it twice.
+    setSending(true)
+    try {
+      if (target === EVERYONE) await window.vandelay.broadcast(body)
+      else await window.vandelay.sendMessage(target, body)
+      setHistory(remember(history, body))
+      setBrowsing(-1)
+      setBody('')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -69,7 +76,7 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
           setBody(next === -1 ? '' : history[next])
         }}
       />
-      <button className="primary" onClick={send} disabled={!body.trim()}>
+      <button className="primary" onClick={send} disabled={!body.trim() || sending}>
         Send
       </button>
     </div>
