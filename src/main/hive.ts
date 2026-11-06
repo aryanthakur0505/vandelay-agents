@@ -1,7 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import { HR, RESERVED_IDS, SYSTEM, YOU } from '@shared/ids'
+import { HR, nextId, slug, SYSTEM, YOU } from '@shared/ids'
 import { MAX_TEMPS, ROLE_TEMPLATES } from '@shared/templates'
 import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
 import { findExecutable } from './terminals'
@@ -24,10 +24,6 @@ function templateRole(name: string): string | undefined {
 
 /** The order the full staff joins a new hive. Kramer and Elaine come first, as in older hives. */
 const DEFAULT_STAFF = ['Kramer', 'Elaine', 'George', 'Jerry', 'Newman', 'Puddy', 'Jackie Chiles']
-
-export function slug(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'agent'
-}
 
 /** Art plus one agent per role template, each with the template's model and autonomy. */
 export function defaultAgents(): AgentConfig[] {
@@ -197,9 +193,7 @@ export class Hive extends EventEmitter {
     if (!input.name?.trim()) throw new Error('An agent needs a name.')
     if (!input.command?.trim()) throw new Error('An agent needs a command to run.')
     input = { ...input, name: input.name.trim(), command: input.command.trim() }
-    const base = slug(input.name)
-    let id = base
-    for (let n = 2; this.get(id) || RESERVED_IDS.has(id); n++) id = `${base}-${n}`
+    const id = nextId(input.name, (taken) => Boolean(this.get(taken)))
     // A second orchestrator would make routing ambiguous.
     const agent: AgentConfig = { ...input, orchestrator: undefined, id, color: PALETTE[this.agents.length % PALETTE.length] }
     this.agents.push(agent)
