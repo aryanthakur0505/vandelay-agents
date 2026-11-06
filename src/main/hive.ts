@@ -377,7 +377,8 @@ export class Hive extends EventEmitter {
     let reply: string
     if (!boss?.orchestrator) reply = 'Only the orchestrator can hire or let go of temps.'
     else if (fields.fire) {
-      const temp = this.get(fields.fire.replace(/`/g, '').toLowerCase())
+      // Accept the id or the name: `babu-bhatt` and "Babu Bhatt" both work.
+      const temp = this.get(slug(fields.fire.replace(/`/g, '')))
       if (!temp?.temp || temp.hiredBy !== from) reply = `\`${fields.fire}\` is not one of your temps.`
       else {
         this.remove(temp.id, false)
