@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 (2026-11-06)
 
 - Composer: keeps an unsent draft across restarts, can't send the same brief twice, and says why a
   brief wasn't sent.
