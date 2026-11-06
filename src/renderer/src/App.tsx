@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import { SYSTEM, YOU } from '@shared/ids'
 import type { AgentConfig, HiveMessage } from '@shared/types'
 import { AgentForm } from './AgentForm'
 import { AgentTerminal } from './AgentTerminal'
 import { BootScreen } from './BootScreen'
 import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
-import { clock, time } from './format'
+import { addressLabel, clock, time } from './format'
 import { beep, usePref } from './prefs'
 import { STATUS_LABEL, statusColors, unitTag, WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 
@@ -75,14 +76,14 @@ export function App(): React.JSX.Element {
       setRouted((n) => n + 1)
       setUnread((u) => ({ ...u, [msg.to]: (u[msg.to] ?? 0) + 1 }))
       // Notices from the app aren't work, so they don't count as the agent's latest task.
-      const task = msg.from === 'vandelay' ? undefined : msg.body.split('\n')[0]
+      const task = msg.from === SYSTEM ? undefined : msg.body.split('\n')[0]
       setTraffic((t) => ({
         ...t,
         [msg.from]: { ...t[msg.from], sent: (t[msg.from]?.sent ?? 0) + 1, received: t[msg.from]?.received ?? 0 },
         [msg.to]: { ...t[msg.to], sent: t[msg.to]?.sent ?? 0, received: (t[msg.to]?.received ?? 0) + 1, task: task ?? t[msg.to]?.task }
       }))
       setFlights((f) => [...f.filter((x) => Date.now() - x.start < FLIGHT_MS), { from: msg.from, to: msg.to, start: Date.now() }])
-      if (soundRef.current) beep(msg.to === 'you' ? 1320 : 880)
+      if (soundRef.current) beep(msg.to === YOU ? 1320 : 880)
     })
     const tick = setInterval(() => {
       const t = Date.now()
@@ -147,7 +148,6 @@ export function App(): React.JSX.Element {
     const s = statuses[a.id]
     return s === 'working' || s === 'idle'
   }).length
-  const name = (id: string): string => (id === 'you' ? 'YOU' : id === 'vandelay' ? 'SYSTEM' : id.toUpperCase())
 
   return (
     <div className="app">
@@ -223,15 +223,15 @@ export function App(): React.JSX.Element {
             <ul className="log">
               {log.length === 0 && <li className="muted">No traffic yet. Brief {agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'} above.</li>}
               {log.map((m) =>
-                m.to === 'you' ? (
+                m.to === YOU ? (
                   // Replies to the human are the point of the whole thing, so show them in full.
                   <li key={m.file} className="to-you">
-                    <span className="ts">[{time(m.at)}]</span> <b>{name(m.from)}</b> ▸ <b>YOU</b>
+                    <span className="ts">[{time(m.at)}]</span> <b>{addressLabel(m.from)}</b> ▸ <b>YOU</b>
                     <p>{m.body}</p>
                   </li>
                 ) : (
-                  <li key={m.file} title={m.body} className={m.from === 'vandelay' ? 'system' : ''}>
-                    <span className="ts">[{time(m.at)}]</span> <b>{name(m.from)}</b> ▸ <b>{name(m.to)}</b>{' '}
+                  <li key={m.file} title={m.body} className={m.from === SYSTEM ? 'system' : ''}>
+                    <span className="ts">[{time(m.at)}]</span> <b>{addressLabel(m.from)}</b> ▸ <b>{addressLabel(m.to)}</b>{' '}
                     <span className="muted">{m.body.slice(0, 90)}</span>
                   </li>
                 )
