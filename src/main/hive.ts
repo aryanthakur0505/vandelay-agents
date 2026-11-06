@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { basename, join } from 'node:path'
 import { HR, RESERVED_IDS, SYSTEM, YOU } from '@shared/ids'
 import { MAX_TEMPS, ROLE_TEMPLATES } from '@shared/templates'
 import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
@@ -352,6 +352,22 @@ export class Hive extends EventEmitter {
     writeFileSync(join(this.root, 'ROSTER.md'), rosterFile(this.agents))
     this.emit('roster', this.agents)
   }
+}
+
+/** Reads a message the hive delivered (its `from:`, `to:` and `at:` header), or null for anything else. */
+export function parseDelivered(text: string, file: string): HiveMessage | null {
+  const lines = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').split('\n')
+  const sep = lines.indexOf('---')
+  if (sep === -1) return null
+  const head: Record<string, string> = {}
+  for (const line of lines.slice(0, sep)) {
+    const m = /^(from|to|at):\s*(.+)$/.exec(line.trim())
+    if (m) head[m[1]] = m[2].trim()
+  }
+  const at = Date.parse(head.at ?? '')
+  if (!head.from || !head.to || Number.isNaN(at)) return null
+  const id = basename(file).replace(/\.md$/, '')
+  return { id, from: head.from, to: head.to, at, file, body: lines.slice(sep + 1).join('\n').trim() }
 }
 
 /** Reads `to: <id>` from the header lines above `---`. Without a separator the whole file is the body. */
