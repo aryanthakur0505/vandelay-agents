@@ -17,7 +17,8 @@ interface Props {
 /** Where you brief the team: pick an agent, write, Ctrl+Enter. */
 export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
   const [to, setTo] = useState('')
-  const [body, setBody] = useState('')
+  // The draft survives a restart, like an unsent email.
+  const [body, setBody] = usePref<string>('draft', '')
   const [history, setHistory] = usePref<string[]>('briefs', [])
   /** Which past brief is showing: -1 while writing a new one. */
   const [browsing, setBrowsing] = useState(-1)
