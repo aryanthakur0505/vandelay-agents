@@ -1,5 +1,5 @@
 import type { AgentConfig } from '@shared/types'
-import { clock } from './format'
+import { badgeCount, clock } from './format'
 import { STATUS_LABEL, statusColors, unitTag, type AgentStatus, type Theme } from './status'
 
 export interface Traffic {
@@ -41,7 +41,7 @@ export function UnitCards({ agents, statuses, unread, traffic, upSince, now, sel
             <span className="unit-head">
               <i style={{ background: colors[s], boxShadow: `0 0 6px ${colors[s]}` }} />
               <b>{a.name}</b>
-              {(unread[a.id] ?? 0) > 0 && <em>{unread[a.id]}</em>}
+              {(unread[a.id] ?? 0) > 0 && <em>{badgeCount(unread[a.id])}</em>}
             </span>
             <span className="unit-meta">
               {unitTag(i)} · {STATUS_LABEL[s]}

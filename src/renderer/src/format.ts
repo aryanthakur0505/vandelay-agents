@@ -18,3 +18,8 @@ export function addressLabel(id: string): string {
   if (id === SYSTEM) return 'SYSTEM'
   return id.toUpperCase()
 }
+
+/** An unread count that fits a small badge. */
+export function badgeCount(n: number): string {
+  return n > 99 ? '99+' : String(n)
+}
