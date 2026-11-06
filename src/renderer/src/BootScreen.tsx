@@ -8,7 +8,7 @@ const STEP_MS = 140
 export function BootScreen({ agents, onDone }: { agents: AgentConfig[]; onDone(): void }): React.JSX.Element {
   const lines = [
     'VANDELAY INDUSTRIES // ROBOTICS DIVISION',
-    'IMPORTER / EXPORTER OF WORK  v0.2',
+    `IMPORTER / EXPORTER OF WORK  v${__APP_VERSION__}`,
     '',
     'MOUNTING HIVE ........................ OK',
     'STARTING ROUTER ...................... OK',
