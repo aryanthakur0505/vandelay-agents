@@ -321,6 +321,13 @@ describe('team management', () => {
     expect(h.add({ name: ' Babs ', command: ' claude ', args: [], cwd: '' })).toMatchObject({ id: 'babs', name: 'Babs', command: 'claude' })
   })
 
+  it('changes an agent color, but only to a plain hex color', () => {
+    const { h } = makeHive()
+    expect(h.update('elaine', { color: '#A1B2C3' }).color).toBe('#A1B2C3')
+    expect(() => h.update('elaine', { color: 'red; background: url(x)' })).toThrow(/Not a color/)
+    expect(h.get('elaine')!.color).toBe('#A1B2C3')
+  })
+
   it('keeps the id when an agent is renamed, and tells the orchestrator', () => {
     const { h, mail } = makeHive()
     h.update('kramer', { name: ' Cosmo ' })
