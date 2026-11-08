@@ -11,7 +11,7 @@ import { FONT_SIZE, nextFontSize } from './format'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 import { StatusBar } from './StatusBar'
-import { openTasks, taskCounts } from './tasks'
+import { openTasks, pendingQuestions, taskCounts } from './tasks'
 import { TermBar } from './TermBar'
 import { UnitCards, type Traffic } from './UnitCards'
 
@@ -165,6 +165,7 @@ export function App(): React.JSX.Element {
   const current = agents.find((a) => a.id === selected)
   // The clock re-renders the app every 400ms; only the log changes what's open.
   const tasks = useMemo(() => openTasks(log), [log])
+  const questions = useMemo(() => pendingQuestions(log), [log])
   const online = agents.filter((a) => {
     const s = statuses[a.id]
     return s === 'working' || s === 'idle'
@@ -226,6 +227,7 @@ export function App(): React.JSX.Element {
             workspace={workspace}
             onReply={(to) => setAim((a) => ({ to, n: (a?.n ?? 0) + 1 }))}
             tasks={tasks}
+            questions={questions}
             now={now}
             onSelect={select}
             orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'}

@@ -16,13 +16,14 @@ interface Props {
   /** Point the composer at whoever sent a message. */
   onReply(to: string): void
   tasks: OpenTask[]
+  questions: HiveMessage[]
   now: number
   /** Show an agent's terminal. */
   onSelect(id: string): void
 }
 
 /** Every message the router delivered, with replies to you shown in full. */
-export function CommsLog({ log, agents, workspace, orchestratorName, onReply, tasks, now, onSelect }: Props): React.JSX.Element {
+export function CommsLog({ log, agents, workspace, orchestratorName, onReply, tasks, questions, now, onSelect }: Props): React.JSX.Element {
   const [filter, setFilter] = useState<CommsFilter>(NO_FILTER)
   const [view, setView] = useState<'comms' | 'tasks'>('comms')
   const shown = filterLog(log, filter)
@@ -42,7 +43,7 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply, ta
             Comms
           </button>
           <button role="tab" aria-selected={view === 'tasks'} className={view === 'tasks' ? 'on' : ''} onClick={() => setView('tasks')}>
-            Tasks{tasks.length > 0 && ` (${tasks.length})`}
+            Tasks{tasks.length + questions.length > 0 && ` (${tasks.length + questions.length})`}
           </button>
         </span>
         {view === 'comms' && (
@@ -74,7 +75,7 @@ export function CommsLog({ log, agents, workspace, orchestratorName, onReply, ta
           </>
         )}
       </div>
-      {view === 'tasks' && <TasksPanel tasks={tasks} now={now} onSelect={onSelect} />}
+      {view === 'tasks' && <TasksPanel tasks={tasks} questions={questions} now={now} onSelect={onSelect} onReply={onReply} />}
       {view === 'comms' && (
         <ul className="log">
           {log.length === 0 && <li className="muted">No traffic yet. Brief {orchestratorName} above.</li>}
