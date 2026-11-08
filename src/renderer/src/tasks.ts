@@ -34,3 +34,15 @@ export function taskCounts(tasks: OpenTask[]): Record<string, number> {
   for (const t of tasks) counts[t.owner] = (counts[t.owner] ?? 0) + 1
   return counts
 }
+
+/** A message to the human that asks for a decision (agents start those with `QUESTION:`). */
+export function isQuestion(m: HiveMessage): boolean {
+  return m.to === YOU && /^\s*\**question\**\s*:/i.test(m.body)
+}
+
+/** Questions to the human that they haven't answered: no message from you to the asker since. */
+export function pendingQuestions(log: HiveMessage[]): HiveMessage[] {
+  const answeredAt: Record<string, number> = {}
+  for (const m of log) if (m.from === YOU) answeredAt[m.to] = Math.max(answeredAt[m.to] ?? 0, m.at)
+  return log.filter((m) => isQuestion(m) && (answeredAt[m.from] ?? 0) < m.at)
+}
