@@ -10,6 +10,7 @@ import { FLIGHT_MS, Floor, type Flight } from './Floor'
 import { FONT_SIZE, nextFontSize } from './format'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
+import { SettingsPanel } from './SettingsPanel'
 import { StatusBar } from './StatusBar'
 import { openTasks, pendingQuestions, taskCounts } from './tasks'
 import { TermBar } from './TermBar'
@@ -31,6 +32,7 @@ export function App(): React.JSX.Element {
   const [form, setForm] = useState<{ edit?: AgentConfig } | null>(null)
   const [aim, setAim] = useState<{ to: string; n: number }>()
   const [commsView, setCommsView] = useState<CommsView>('comms')
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [stuck, setStuck] = useState<StuckMail[]>([])
   useEffect(() => {
     const refresh = (): void => void window.vandelay.stuckMail().then(setStuck)
@@ -207,8 +209,8 @@ export function App(): React.JSX.Element {
           onNeedsYou={() => setCommsView('tasks')}
         />
         <div className="header-actions">
-          <button title="Sound on new messages" className={sound ? 'on' : ''} onClick={() => setSound(!sound)}>
-            {sound ? 'Sound on' : 'Sound off'}
+          <button title="Theme, text size, sound, team files" onClick={() => setSettingsOpen(true)}>
+            Settings
           </button>
           <button title="Switch theme" onClick={() => setTheme(theme === 'control' ? 'office' : 'control')}>
             {theme === 'control' ? 'Office theme' : 'Control room'}
@@ -218,6 +220,18 @@ export function App(): React.JSX.Element {
           </button>
         </div>
       </header>
+
+      {settingsOpen && (
+        <SettingsPanel
+          theme={theme}
+          onTheme={setTheme}
+          sound={sound}
+          onSound={setSound}
+          fontSize={fontSize}
+          onFontSize={setFontSize}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
 
       {form && (
         <AgentForm
