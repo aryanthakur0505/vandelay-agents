@@ -11,7 +11,7 @@ import { FONT_SIZE, nextFontSize } from './format'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 import { StatusBar } from './StatusBar'
-import { openTasks } from './tasks'
+import { openTasks, taskCounts } from './tasks'
 import { TermBar } from './TermBar'
 import { UnitCards, type Traffic } from './UnitCards'
 
@@ -238,6 +238,7 @@ export function App(): React.JSX.Element {
             statuses={statuses}
             unread={unread}
             traffic={traffic}
+            owed={taskCounts(tasks)}
             upSince={upSince.current}
             now={now}
             selected={selected}

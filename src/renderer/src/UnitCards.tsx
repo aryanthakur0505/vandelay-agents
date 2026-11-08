@@ -14,6 +14,8 @@ interface Props {
   statuses: Record<string, AgentStatus>
   unread: Record<string, number>
   traffic: Record<string, Traffic>
+  /** Briefs each agent still owes a reply on. */
+  owed: Record<string, number>
   /** When each running agent first printed something. */
   upSince: Record<string, number>
   now: number
@@ -23,7 +25,7 @@ interface Props {
 }
 
 /** One card per agent: status light, unread count, uptime, model and message counts. */
-export function UnitCards({ agents, statuses, unread, traffic, upSince, now, selected, theme, onSelect }: Props): React.JSX.Element {
+export function UnitCards({ agents, statuses, unread, traffic, owed, upSince, now, selected, theme, onSelect }: Props): React.JSX.Element {
   const colors = statusColors(theme)
   return (
     <nav className="units">
@@ -49,6 +51,7 @@ export function UnitCards({ agents, statuses, unread, traffic, upSince, now, sel
             </span>
             <span className="unit-meta">
               {a.orchestrator ? 'ORCHESTRATOR' : a.temp ? 'TEMP' : (a.model ?? 'default').toUpperCase()} · ↑{t?.sent ?? 0} ↓{t?.received ?? 0}
+              {(owed[a.id] ?? 0) > 0 && <span title="Briefs waiting for this agent's reply"> · ⧗{owed[a.id]}</span>}
             </span>
           </button>
         )
