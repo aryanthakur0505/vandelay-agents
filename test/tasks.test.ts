@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { HiveMessage } from '../src/shared/types'
-import { openTasks, taskCounts } from '../src/renderer/src/tasks'
+import { isQuestion, openTasks, pendingQuestions, taskCounts } from '../src/renderer/src/tasks'
 
 let clock = 0
 const msg = (from: string, to: string, body = ''): HiveMessage => {
@@ -30,5 +30,21 @@ describe('openTasks', () => {
   it('counts open tasks per owner', () => {
     const tasks = openTasks([msg('art', 'kramer'), msg('art', 'kramer'), msg('you', 'art')])
     expect(taskCounts(tasks)).toEqual({ kramer: 2, art: 1 })
+  })
+})
+
+describe('questions for the human', () => {
+  it('recognises QUESTION: in plain or bold markdown, only when addressed to you', () => {
+    expect(isQuestion(msg('art', 'you', 'QUESTION: ship on Friday?'))).toBe(true)
+    expect(isQuestion(msg('art', 'you', '**Question:** delete the old API?'))).toBe(true)
+    expect(isQuestion(msg('art', 'you', 'Shipped. Any question: ask.'))).toBe(false)
+    expect(isQuestion(msg('art', 'kramer', 'QUESTION: lunch?'))).toBe(false)
+  })
+
+  it('keeps a question pending until you write to the asker', () => {
+    const q = msg('art', 'you', 'QUESTION: Postgres or SQLite?')
+    const other = msg('you', 'kramer', 'unrelated')
+    expect(pendingQuestions([other, q])).toEqual([q])
+    expect(pendingQuestions([q, other, msg('you', 'art', 'Postgres')])).toEqual([])
   })
 })
