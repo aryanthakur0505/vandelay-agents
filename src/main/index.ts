@@ -4,7 +4,7 @@ import { app, BrowserWindow, dialog, ipcMain, Notification, screen, shell } from
 import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
 import { isQuestion } from '@shared/messages'
-import type { AgentConfig, AgentFile, AgentInput, HiveMessage } from '@shared/types'
+import type { AgentConfig, AgentFile, AgentInput, HiveMessage, StuckMail } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
 import { findExecutable, isShell, Terminals } from './terminals'
@@ -205,6 +205,12 @@ function wire(): void {
     hive.deliver(YOU, to, body)
   })
   ipcMain.handle(IPC.hiveHistory, () => hive.history())
+  ipcMain.handle(IPC.hiveStuck, () => hive.stuckMail())
+  ipcMain.handle(IPC.hiveRelease, (_e, kind: StuckMail['kind'], file: string) => {
+    hive.releaseStuck(kind, file)
+  })
+  ipcMain.handle(IPC.hiveDiscard, (_e, kind: StuckMail['kind'], file: string) => hive.discardStuck(kind, file))
+  hive.on('stuck', () => send(IPC.hiveStuckChanged))
   ipcMain.handle(IPC.hiveBroadcast, (_e, body: string) => {
     hive.broadcast(YOU, body)
   })

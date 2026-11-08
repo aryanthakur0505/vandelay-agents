@@ -79,6 +79,14 @@ export interface VandelayApi {
   sendMessage(to: string, body: string): Promise<void>
   /** Recent delivered messages, newest first, read from disk. */
   history(): Promise<HiveMessage[]>
+  /** Mail held by the loop guard or dead-lettered, newest first. */
+  stuckMail(): Promise<StuckMail[]>
+  /** Delivers a stuck message now. Rejects if its recipient isn't on the team. */
+  releaseStuck(kind: StuckMail['kind'], file: string): Promise<void>
+  /** Moves a stuck message to `.vandelay/discarded/`. */
+  discardStuck(kind: StuckMail['kind'], file: string): Promise<void>
+  /** Whenever mail gets stuck, released or discarded. */
+  onStuckChanged(cb: () => void): () => void
   /** The same brief to every agent. */
   broadcast(body: string): Promise<void>
   onData(cb: (id: string, data: string) => void): () => void
