@@ -214,6 +214,16 @@ export class Hive extends EventEmitter {
     return agent
   }
 
+  /** Hires a saved team. Names that are taken get numbered ids, like any hire. One notice for all. */
+  importTeam(inputs: AgentInput[]): AgentConfig[] {
+    const hired = inputs.map((input) => this.add({ ...input, orchestrator: undefined, temp: undefined, hiredBy: undefined }, false))
+    if (hired.length) {
+      const list = hired.map((a) => `\`${a.id}\` ${a.name}: ${a.role ?? 'no specialty set'}`).join('\n')
+      this.announce(`${hired.length} new hire${hired.length === 1 ? '' : 's'} from a saved team:\n${list}`, '')
+    }
+    return hired
+  }
+
   /** Changes take effect the next time the agent starts. */
   update(id: string, patch: Partial<AgentInput>): AgentConfig {
     const agent = this.get(id)
