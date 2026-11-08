@@ -229,6 +229,7 @@ export function App(): React.JSX.Element {
           onSound={setSound}
           fontSize={fontSize}
           onFontSize={setFontSize}
+          agents={agents}
           onClose={() => setSettingsOpen(false)}
         />
       )}

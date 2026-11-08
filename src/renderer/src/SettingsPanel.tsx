@@ -1,3 +1,6 @@
+import { useState } from 'react'
+import { teamFile } from '@shared/team'
+import type { AgentConfig } from '@shared/types'
 import { FONT_SIZE } from './format'
 import type { Theme } from './status'
 
@@ -8,11 +11,28 @@ interface Props {
   onSound(on: boolean): void
   fontSize: number
   onFontSize(size: number): void
+  agents: AgentConfig[]
   onClose(): void
 }
 
 /** Preferences that don't belong in the header. Everything here is saved per computer. */
-export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFontSize, onClose }: Props): React.JSX.Element {
+export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFontSize, agents, onClose }: Props): React.JSX.Element {
+  const [teamNote, setTeamNote] = useState('')
+  const staff = agents.filter((a) => !a.orchestrator && !a.temp).length
+
+  const exportTeam = async (): Promise<void> => {
+    const path = await window.vandelay.saveText('vandelay-team.json', teamFile(agents))
+    if (path) setTeamNote(`Saved ${staff} agents to ${path}.`)
+  }
+  const importTeam = async (): Promise<void> => {
+    try {
+      const hired = await window.vandelay.importTeam()
+      if (hired) setTeamNote(hired.length ? `Hired ${hired.map((a) => a.name).join(', ')}.` : 'That team file has nobody in it.')
+    } catch (err) {
+      setTeamNote(String((err as Error).message).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''))
+    }
+  }
+
   return (
     <div className="modal-backdrop" onClick={onClose} onKeyDown={(e) => e.key === 'Escape' && onClose()}>
       <div className="panel agent-form settings" role="dialog" aria-label="Settings" onClick={(e) => e.stopPropagation()}>
@@ -33,6 +53,20 @@ export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFont
         <label className="check">
           <input type="checkbox" checked={sound} onChange={(e) => onSound(e.target.checked)} /> A short blip for each message
         </label>
+
+        <h3>Team</h3>
+        <p className="hint">
+          Save everyone except Art and temps (names, specialties, commands, models, autonomy) to reuse in another workspace or share with someone.
+        </p>
+        <div className="row">
+          <button type="button" onClick={exportTeam} disabled={staff === 0}>
+            Export team…
+          </button>
+          <button type="button" onClick={importTeam}>
+            Import team…
+          </button>
+        </div>
+        {teamNote && <p className="hint">{teamNote}</p>}
 
         <div className="actions">
           <button type="button" className="primary" onClick={onClose}>
