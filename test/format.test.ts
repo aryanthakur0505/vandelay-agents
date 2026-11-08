@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addressLabel, badgeCount, clock, time } from '../src/renderer/src/format'
+import { addressLabel, badgeCount, clock, FONT_SIZE, nextFontSize, time } from '../src/renderer/src/format'
 
 describe('clock', () => {
   it('formats durations as hh:mm:ss', () => {
@@ -28,5 +28,14 @@ describe('addressLabel', () => {
 describe('badgeCount', () => {
   it('caps at 99+', () => {
     expect([badgeCount(1), badgeCount(99), badgeCount(100)]).toEqual(['1', '99', '99+'])
+  })
+})
+
+describe('nextFontSize', () => {
+  it('steps within the limits', () => {
+    expect(nextFontSize(13, 1)).toBe(14)
+    expect(nextFontSize(FONT_SIZE.max, 1)).toBe(FONT_SIZE.max)
+    expect(nextFontSize(FONT_SIZE.min, -1)).toBe(FONT_SIZE.min)
+    expect(nextFontSize(12.6, 0)).toBe(13)
   })
 })

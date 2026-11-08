@@ -23,3 +23,10 @@ export function addressLabel(id: string): string {
 export function badgeCount(n: number): string {
   return n > 99 ? '99+' : String(n)
 }
+
+export const FONT_SIZE = { min: 9, max: 24, default: 13 }
+
+/** A terminal font size one step bigger or smaller, kept within readable limits. */
+export function nextFontSize(size: number, step: number): number {
+  return Math.min(FONT_SIZE.max, Math.max(FONT_SIZE.min, Math.round(size) + step))
+}
