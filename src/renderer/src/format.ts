@@ -39,3 +39,9 @@ export function ago(ms: number): string {
   if (s < 86400) return `${Math.floor(s / 3600)}h`
   return `${Math.floor(s / 86400)}d`
 }
+
+/** The part of an error from the main process worth showing: Electron wraps it in its own prefix. */
+export function errorText(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err)
+  return message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '')
+}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { StuckMail } from '@shared/types'
-import { addressLabel, ago } from './format'
+import { addressLabel, ago, errorText } from './format'
 
 interface Props {
   mail: StuckMail[]
@@ -17,7 +17,7 @@ export function StuckPanel({ mail, now }: Props): React.JSX.Element {
   const [error, setError] = useState('')
   const act = (run: () => Promise<void>): void => {
     setError('')
-    run().catch((err: Error) => setError(err.message.replace(/^Error invoking remote method '[^']+': (Error: )?/, '')))
+    run().catch((err) => setError(errorText(err)))
   }
 
   return (

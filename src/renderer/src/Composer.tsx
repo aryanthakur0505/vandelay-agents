@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AgentConfig } from '@shared/types'
 import { remember, step } from './briefHistory'
+import { errorText } from './format'
 import { usePref } from './prefs'
 
 /** The composer's "To:" value for a broadcast; can't clash with an agent id, which has no `*`. */
@@ -45,7 +46,7 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
       setBody('')
     } catch (err) {
       // The brief stays in the box, so nothing is lost.
-      setError(`Not sent: ${String((err as Error).message ?? err).replace(/^Error invoking remote method '[^']+': (Error: )?/, '')}`)
+      setError(`Not sent: ${errorText(err)}`)
     } finally {
       setSending(false)
     }

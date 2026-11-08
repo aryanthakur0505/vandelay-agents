@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { teamFile } from '@shared/team'
 import type { AgentConfig } from '@shared/types'
-import { FONT_SIZE } from './format'
+import { errorText, FONT_SIZE } from './format'
 import type { Theme } from './status'
 
 interface Props {
@@ -29,7 +29,7 @@ export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFont
       const hired = await window.vandelay.importTeam()
       if (hired) setTeamNote(hired.length ? `Hired ${hired.map((a) => a.name).join(', ')}.` : 'That team file has nobody in it.')
     } catch (err) {
-      setTeamNote(String((err as Error).message).replace(/^Error invoking remote method '[^']+': (Error: )?/, ''))
+      setTeamNote(errorText(err))
     }
   }
 
