@@ -11,9 +11,12 @@ interface Props {
   /** Bumped by the parent to respawn the process after it exits. */
   generation: number
   theme: Theme
+  fontSize: number
+  /** Ctrl+wheel over the terminal asks for a bigger (+1) or smaller (-1) font. */
+  onZoom(step: number): void
 }
 
-export function AgentTerminal({ agent, visible, generation, theme }: Props): React.JSX.Element {
+export function AgentTerminal({ agent, visible, generation, theme, fontSize, onZoom }: Props): React.JSX.Element {
   const host = useRef<HTMLDivElement>(null)
   const term = useRef<Terminal | null>(null)
   const fit = useRef<FitAddon | null>(null)
@@ -21,7 +24,7 @@ export function AgentTerminal({ agent, visible, generation, theme }: Props): Rea
   useEffect(() => {
     const t = new Terminal({
       fontFamily: "'JetBrains Mono', 'Cascadia Mono', Consolas, Menlo, monospace",
-      fontSize: 13,
+      fontSize,
       cursorBlink: true,
       scrollback: 5000,
       theme: terminalTheme(theme, agent.color)
@@ -88,6 +91,31 @@ export function AgentTerminal({ agent, visible, generation, theme }: Props): Rea
   useEffect(() => {
     if (term.current) term.current.options.theme = terminalTheme(theme, agent.color)
   }, [theme, agent.color])
+
+  useEffect(() => {
+    const t = term.current
+    if (!t || t.options.fontSize === fontSize) return
+    t.options.fontSize = fontSize
+    // A new font size changes how many rows and columns fit, so refit and tell the PTY.
+    if (host.current?.offsetWidth) {
+      fit.current!.fit()
+      window.vandelay.resize(agent.id, t.cols, t.rows)
+    }
+  }, [fontSize, agent.id])
+
+  const zoom = useRef(onZoom)
+  zoom.current = onZoom
+  useEffect(() => {
+    const el = host.current!
+    const onWheel = (e: WheelEvent): void => {
+      if (!e.ctrlKey) return
+      e.preventDefault()
+      zoom.current(e.deltaY < 0 ? 1 : -1)
+    }
+    // Not passive, so preventDefault keeps the terminal from scrolling while zooming.
+    el.addEventListener('wheel', onWheel, { passive: false, capture: true })
+    return () => el.removeEventListener('wheel', onWheel, { capture: true })
+  }, [])
 
   return <div ref={host} className="terminal-host" style={{ visibility: visible ? 'visible' : 'hidden' }} />
 }

@@ -7,6 +7,7 @@ import { BootScreen } from './BootScreen'
 import { CommsLog } from './CommsLog'
 import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
+import { FONT_SIZE, nextFontSize } from './format'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 import { StatusBar } from './StatusBar'
@@ -31,6 +32,7 @@ export function App(): React.JSX.Element {
   const [now, setNow] = useState(Date.now())
   const [theme, setTheme] = usePref<Theme>('theme', 'control')
   const [sound, setSound] = usePref<boolean>('sound', false)
+  const [fontSize, setFontSize] = usePref<number>('fontSize', FONT_SIZE.default)
   const [booting, setBooting] = useState(theme === 'control' && !matchMedia('(prefers-reduced-motion: reduce)').matches)
 
   const lastOutput = useRef<Record<string, number>>({})
@@ -249,7 +251,15 @@ export function App(): React.JSX.Element {
           )}
           <div className="terminals">
             {agents.map((a) => (
-              <AgentTerminal key={a.id} agent={a} visible={a.id === selected} generation={generations[a.id] ?? 0} theme={theme} />
+              <AgentTerminal
+                key={a.id}
+                agent={a}
+                visible={a.id === selected}
+                generation={generations[a.id] ?? 0}
+                theme={theme}
+                fontSize={fontSize}
+                onZoom={(step) => setFontSize(nextFontSize(fontSize, step))}
+              />
             ))}
           </div>
         </section>
