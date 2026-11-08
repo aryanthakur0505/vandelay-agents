@@ -32,6 +32,7 @@ Mail is plain Markdown files, so agents need nothing but file access to talk to 
    `from:`/`to:`/`at:` header. The sender's copy goes to its `archive/` as `sent-*`.
 3. Unknown recipients go to `dead-letter/` and the sender gets a notice. Two agents trading more
    than `LOOP_LIMIT` messages a minute have their mail parked in `held/`, and you get a notice.
+   Both show in the Stuck tab, where you can deliver them anyway or move them to `discarded/`.
 4. A claude agent's mail watcher (an `asyncRewake` hook) sees the new inbox file, moves it to
    `archive/`, and exits with code 2 and the message on stderr, which wakes Claude. Other CLIs get a
    prompt typed into their terminal once it has been quiet for two seconds.

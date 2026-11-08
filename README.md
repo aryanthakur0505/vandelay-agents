@@ -126,6 +126,7 @@ in `<workspace>/.vandelay/`:
   you/                 replies addressed to you
   dead-letter/         messages with an unknown recipient
   held/                mail between two agents stuck replying to each other
+  discarded/           stuck mail you discarded
   former/              folders of agents you let go
   agents/<id>/
     inbox/  outbox/  archive/  memory.md  ROLE.md
@@ -214,7 +215,9 @@ HR (the app) replies with the temp's id, the temp appears on the floor, and Art 
 
 The protocol tells agents not to answer replies or acknowledgements, so two agents can't thank each
 other forever. If two agents still trade more than 12 messages in a minute, the router holds their
-mail in `.vandelay/held/` and tells you. Replies addressed to you show in full in the comms log, with a desktop notification
+mail in `.vandelay/held/` and tells you. A **Stuck** tab appears next to Comms whenever mail is held
+or dead-lettered: **Deliver** sends it anyway (once the recipient exists), **Discard** moves it to
+`.vandelay/discarded/`. Replies addressed to you show in full in the comms log, with a desktop notification
 when the window isn't focused. Sign in once inside an agent's terminal the first time it runs.
 
 ### Themes

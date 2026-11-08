@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- **Stuck** tab: mail held by the loop guard or dead-lettered, with **Deliver** and **Discard**.
 - Questions: agents mark decisions they need with `QUESTION:`; unanswered ones show as **Needs
   you** in the header, top the Tasks tab, and notify as "asks you".
 - **Tasks** tab: briefs still waiting for a reply, who owes them and for how long; unit cards show
