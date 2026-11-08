@@ -240,6 +240,16 @@ header {
   text-shadow: var(--glow);
 }
 
+.stats .needs-you {
+  cursor: pointer;
+}
+
+.stats .needs-you dt,
+.stats .needs-you dd {
+  color: #ffb000;
+  text-shadow: 0 0 8px rgba(255, 176, 0, 0.5);
+}
+
 .header-actions {
   display: flex;
   gap: 6px;
@@ -398,6 +408,10 @@ main {
   border-left: 3px solid var(--highlight);
   background: var(--panel-2);
   border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.log li.question {
+  border-left-color: #ffb000;
 }
 
 .log li.to-you .copy {
