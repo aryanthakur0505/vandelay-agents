@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addressLabel, badgeCount, clock, FONT_SIZE, nextFontSize, time } from '../src/renderer/src/format'
+import { addressLabel, ago, badgeCount, clock, FONT_SIZE, nextFontSize, time } from '../src/renderer/src/format'
 
 describe('clock', () => {
   it('formats durations as hh:mm:ss', () => {
@@ -37,5 +37,11 @@ describe('nextFontSize', () => {
     expect(nextFontSize(FONT_SIZE.max, 1)).toBe(FONT_SIZE.max)
     expect(nextFontSize(FONT_SIZE.min, -1)).toBe(FONT_SIZE.min)
     expect(nextFontSize(12.6, 0)).toBe(13)
+  })
+})
+
+describe('ago', () => {
+  it('picks the largest whole unit', () => {
+    expect([ago(-1), ago(40_000), ago(12 * 60_000), ago(3 * 3_600_000 + 5), ago(2 * 86_400_000)]).toEqual(['0s', '40s', '12m', '3h', '2d'])
   })
 })

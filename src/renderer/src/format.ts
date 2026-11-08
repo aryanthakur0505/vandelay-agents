@@ -30,3 +30,12 @@ export const FONT_SIZE = { min: 9, max: 24, default: 13 }
 export function nextFontSize(size: number, step: number): number {
   return Math.min(FONT_SIZE.max, Math.max(FONT_SIZE.min, Math.round(size) + step))
 }
+
+/** A short age like `40s`, `12m` or `3h`, for how long something has waited. */
+export function ago(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000))
+  if (s < 60) return `${s}s`
+  if (s < 3600) return `${Math.floor(s / 60)}m`
+  if (s < 86400) return `${Math.floor(s / 3600)}h`
+  return `${Math.floor(s / 86400)}d`
+}
