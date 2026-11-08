@@ -335,6 +335,25 @@ main {
   width: 140px;
 }
 
+.tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.tabs button {
+  padding: 2px 8px;
+  border-color: transparent;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.tabs button.on {
+  color: var(--accent);
+  border-color: var(--line);
+  background: var(--panel-2);
+}
+
 .comms-count {
   padding: 0 10px 4px;
   font-size: 11px;
