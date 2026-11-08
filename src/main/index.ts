@@ -1,5 +1,5 @@
 import { existsSync, rmSync, writeFileSync } from 'node:fs'
-import { basename, dirname, join } from 'node:path'
+import { basename, dirname, extname, join } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, Notification, screen, shell } from 'electron'
 import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
@@ -149,7 +149,7 @@ function wire(): void {
   ipcMain.handle(IPC.saveText, async (_e, defaultName: string, text: string) => {
     const { canceled, filePath } = await dialog.showSaveDialog(win!, {
       defaultPath: join(workspace, basename(defaultName)),
-      filters: [{ name: 'Markdown', extensions: ['md'] }]
+      filters: [extname(defaultName) === '.json' ? { name: 'JSON', extensions: ['json'] } : { name: 'Markdown', extensions: ['md'] }]
     })
     if (canceled || !filePath) return null
     writeFileSync(filePath, text)
