@@ -400,6 +400,7 @@ export class Hive extends EventEmitter {
           } else {
             renameSync(path, join(this.root, 'dead-letter', `${agent.id}-${Date.now()}-${f}`))
             this.emit('undeliverable', { from: agent.id, to, file: f })
+            this.emit('stuck')
             // Otherwise the sender waits forever for a reply that can't come.
             this.deliver(
               SYSTEM,
@@ -423,6 +424,7 @@ export class Hive extends EventEmitter {
   private hold(path: string, from: string, to: string, file: string): void {
     mkdirSync(join(this.root, 'held'), { recursive: true })
     renameSync(path, join(this.root, 'held', `${from}-${Date.now()}-${file}`))
+    this.emit('stuck')
     const key = [from, to].sort().join('|')
     const now = Date.now()
     if (now - (this.loopNoticeAt.get(key) ?? 0) < LOOP_WINDOW_MS) return
