@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { AUTONOMY, MODELS, ROLE_TEMPLATES, SUGGESTED_MAX_AGENTS } from '@shared/templates'
 import { nextId } from '@shared/ids'
-import type { AgentConfig, AgentInput, Autonomy } from '@shared/types'
+import type { AgentConfig, AgentPatch, Autonomy } from '@shared/types'
 
 interface Props {
   /** The agent being edited; hiring when absent. */
   agent?: AgentConfig
   /** Ids already on the team, to preview the new agent's id. */
   takenIds: string[]
-  onSave(input: AgentInput): void
+  /** Hiring sends everything but the color, which the hive picks; editing can change it too. */
+  onSave(input: Required<Pick<AgentPatch, 'name' | 'command' | 'args' | 'cwd'>> & AgentPatch): void
   onCancel(): void
 }
 
@@ -21,6 +22,7 @@ export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.J
   const [autonomy, setAutonomy] = useState<Autonomy>(agent?.autonomy ?? 'inherit')
   const [cwd, setCwd] = useState(agent?.cwd ?? '')
   const [worktree, setWorktree] = useState(agent?.worktree ?? false)
+  const [color, setColor] = useState(agent?.color ?? '')
   const editing = Boolean(agent)
   const program = command.trim().split(/\s+/)[0] ?? ''
   // Check as you type (debounced) so a typo shows up before the agent fails to start.
@@ -53,7 +55,8 @@ export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.J
       cwd: cwd.trim(),
       model: model || undefined,
       autonomy,
-      ...(worktree && { worktree })
+      ...(worktree && { worktree }),
+      ...(editing && /^#[0-9a-f]{6}$/i.test(color) && { color })
     })
   }
 
@@ -127,6 +130,11 @@ export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.J
           Working folder
           <input value={cwd} onChange={(e) => setCwd(e.target.value)} placeholder="Blank = the workspace" />
         </label>
+        {editing && /^#[0-9a-f]{6}$/i.test(color) && (
+          <label className="check">
+            <input type="color" value={color} onChange={(e) => setColor(e.target.value)} /> Color on the floor and in the cards
+          </label>
+        )}
         <label className="check" title="Work on branch vandelay/<id> in a git worktree of its own, so it can't overwrite other agents' edits">
           <input type="checkbox" checked={worktree} onChange={(e) => setWorktree(e.target.checked)} /> Own git worktree
         </label>
