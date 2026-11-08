@@ -231,6 +231,13 @@ Every delivered message shows under the composer, newest first, and the last 200
 restart. Filter by who sent or received a message, search the text, **Copy** a reply addressed to
 you, or **Export** what's shown as a Markdown transcript.
 
+### Questions for you
+
+Agents are told to start a message with `QUESTION:` when they need a decision from you. Those show
+in amber, count towards **Needs you** in the header (click it), sit at the top of the **Tasks** tab
+with a **Reply** button, and raise an "asks you" notification. A question stays open until you send
+that agent anything.
+
 ### Open tasks
 
 The **Tasks** tab next to Comms lists every brief still waiting for a reply: who owes it, who asked
