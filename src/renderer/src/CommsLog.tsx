@@ -4,7 +4,7 @@ import type { AgentConfig, HiveMessage } from '@shared/types'
 import { commsFileName, commsMarkdown } from './commsExport'
 import { filterLog, NO_FILTER, type CommsFilter } from './commsFilter'
 import { addressLabel, time } from './format'
-import type { OpenTask } from './tasks'
+import { isQuestion, type OpenTask } from './tasks'
 import { TasksPanel } from './TasksPanel'
 
 export type CommsView = 'comms' | 'tasks'
@@ -98,7 +98,7 @@ export function CommsLog({
           {shown.map((m) =>
             m.to === YOU ? (
               // Replies to the human are the point of the whole thing, so show them in full.
-              <li key={m.file} className="to-you">
+              <li key={m.file} className={isQuestion(m) ? 'to-you question' : 'to-you'}>
                 <span className="ts">[{time(m.at)}]</span> {who(m.from)} ▸ <b>YOU</b>
                 <button className="copy" title="Copy the reply" onClick={() => navigator.clipboard.writeText(m.body).catch(() => {})}>
                   Copy
