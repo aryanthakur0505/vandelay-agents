@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addressLabel, ago, badgeCount, clock, FONT_SIZE, nextFontSize, time } from '../src/renderer/src/format'
+import { addressLabel, ago, badgeCount, clock, errorText, FONT_SIZE, nextFontSize, time } from '../src/renderer/src/format'
 
 describe('clock', () => {
   it('formats durations as hh:mm:ss', () => {
@@ -43,5 +43,12 @@ describe('nextFontSize', () => {
 describe('ago', () => {
   it('picks the largest whole unit', () => {
     expect([ago(-1), ago(40_000), ago(12 * 60_000), ago(3 * 3_600_000 + 5), ago(2 * 86_400_000)]).toEqual(['0s', '40s', '12m', '3h', '2d'])
+  })
+})
+
+describe('errorText', () => {
+  it("strips Electron's IPC prefix", () => {
+    expect(errorText(new Error("Error invoking remote method 'hive:send': Error: Unknown recipient x"))).toBe('Unknown recipient x')
+    expect(errorText('plain')).toBe('plain')
   })
 })
