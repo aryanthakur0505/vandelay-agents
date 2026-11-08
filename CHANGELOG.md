@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Tasks** tab: briefs still waiting for a reply, who owes them and for how long; unit cards show
+  the count.
 - Links in agent terminals are clickable and open in your browser.
 - Ctrl + mouse wheel over a terminal changes its text size, and the size is remembered.
 

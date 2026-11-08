@@ -231,6 +231,13 @@ Every delivered message shows under the composer, newest first, and the last 200
 restart. Filter by who sent or received a message, search the text, **Copy** a reply addressed to
 you, or **Export** what's shown as a Markdown transcript.
 
+### Open tasks
+
+The **Tasks** tab next to Comms lists every brief still waiting for a reply: who owes it, who asked
+and how long ago. A brief stays open until the agent it went to writes back to the sender; a reply
+closes every earlier brief between those two and isn't a new task itself. Unit cards show the count
+as ⧗. It's worked out from the comms log, so it covers the last 200 messages.
+
 ### Keyboard shortcuts
 
 | Keys | Does |
