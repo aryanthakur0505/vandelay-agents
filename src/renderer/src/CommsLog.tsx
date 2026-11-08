@@ -7,6 +7,8 @@ import { addressLabel, time } from './format'
 import type { OpenTask } from './tasks'
 import { TasksPanel } from './TasksPanel'
 
+export type CommsView = 'comms' | 'tasks'
+
 interface Props {
   /** Newest first. */
   log: HiveMessage[]
@@ -18,14 +20,27 @@ interface Props {
   tasks: OpenTask[]
   questions: HiveMessage[]
   now: number
+  view: CommsView
+  onView(view: CommsView): void
   /** Show an agent's terminal. */
   onSelect(id: string): void
 }
 
 /** Every message the router delivered, with replies to you shown in full. */
-export function CommsLog({ log, agents, workspace, orchestratorName, onReply, tasks, questions, now, onSelect }: Props): React.JSX.Element {
+export function CommsLog({
+  log,
+  agents,
+  workspace,
+  orchestratorName,
+  onReply,
+  tasks,
+  questions,
+  now,
+  onSelect,
+  view,
+  onView: setView
+}: Props): React.JSX.Element {
   const [filter, setFilter] = useState<CommsFilter>(NO_FILTER)
-  const [view, setView] = useState<'comms' | 'tasks'>('comms')
   const shown = filterLog(log, filter)
   const filtered = filter.party !== '' || filter.query.trim() !== ''
   /** A name in the log: click it to see only that party's traffic. */

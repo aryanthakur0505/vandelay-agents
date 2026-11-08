@@ -4,7 +4,7 @@ import type { AgentConfig, HiveMessage } from '@shared/types'
 import { AgentForm } from './AgentForm'
 import { AgentTerminal } from './AgentTerminal'
 import { BootScreen } from './BootScreen'
-import { CommsLog } from './CommsLog'
+import { CommsLog, type CommsView } from './CommsLog'
 import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
 import { FONT_SIZE, nextFontSize } from './format'
@@ -30,6 +30,7 @@ export function App(): React.JSX.Element {
   const [generations, setGenerations] = useState<Record<string, number>>({})
   const [form, setForm] = useState<{ edit?: AgentConfig } | null>(null)
   const [aim, setAim] = useState<{ to: string; n: number }>()
+  const [commsView, setCommsView] = useState<CommsView>('comms')
   const [now, setNow] = useState(Date.now())
   const [theme, setTheme] = usePref<Theme>('theme', 'control')
   const [sound, setSound] = usePref<boolean>('sound', false)
@@ -190,7 +191,15 @@ export function App(): React.JSX.Element {
             </small>
           </div>
         </div>
-        <StatusBar online={online} total={agents.length} routed={routed} uptimeMs={now - APP_START} now={now} />
+        <StatusBar
+          online={online}
+          total={agents.length}
+          routed={routed}
+          uptimeMs={now - APP_START}
+          now={now}
+          needsYou={questions.length}
+          onNeedsYou={() => setCommsView('tasks')}
+        />
         <div className="header-actions">
           <button title="Sound on new messages" className={sound ? 'on' : ''} onClick={() => setSound(!sound)}>
             {sound ? 'Sound on' : 'Sound off'}
@@ -228,6 +237,8 @@ export function App(): React.JSX.Element {
             onReply={(to) => setAim((a) => ({ to, n: (a?.n ?? 0) + 1 }))}
             tasks={tasks}
             questions={questions}
+            view={commsView}
+            onView={setCommsView}
             now={now}
             onSelect={select}
             orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'}
