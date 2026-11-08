@@ -3,6 +3,7 @@ import { basename, dirname, join } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, Notification, screen, shell } from 'electron'
 import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
+import { isQuestion } from '@shared/messages'
 import type { AgentConfig, AgentFile, AgentInput, HiveMessage } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
@@ -96,7 +97,10 @@ function nudgeText(agent: AgentConfig, msg: HiveMessage): string {
 /** Replies to the human are easy to miss while you're in another window, so raise a notification. */
 function notifyHuman(msg: HiveMessage): void {
   if (!win || win.isDestroyed() || win.isFocused() || !Notification.isSupported()) return
-  const n = new Notification({ title: `${hive.get(msg.from)?.name ?? msg.from} replied`, body: msg.body.slice(0, 200) })
+  const who = hive.get(msg.from)?.name ?? msg.from
+  // A question needs you, so say so; anything else is a report.
+  const title = isQuestion(msg) ? `${who} asks you` : `${who} replied`
+  const n = new Notification({ title, body: msg.body.slice(0, 200) })
   n.on('click', () => {
     win?.show()
     win?.focus()
