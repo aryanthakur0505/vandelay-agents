@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- **Settings** panel: theme, terminal text size, sound, and team export/import as
+  `vandelay-team.json`.
 - **Stuck** tab: mail held by the loop guard or dead-lettered, with **Deliver** and **Discard**.
 - Questions: agents mark decisions they need with `QUESTION:`; unanswered ones show as **Needs
   you** in the header, top the Tasks tab, and notify as "asks you".

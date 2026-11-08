@@ -262,6 +262,13 @@ as ⧗. It's worked out from the comms log, so it covers the last 200 messages.
 | Ctrl + mouse wheel (over a terminal) | bigger or smaller terminal text, remembered |
 | any key or click | skip the boot sequence |
 
+### Settings and team files
+
+**Settings** in the header holds the theme, terminal text size and message sound, and team files:
+**Export team** saves everyone except Art and temps (names, specialties, commands, models, autonomy)
+as `vandelay-team.json`; **Import team** hires everyone in such a file, numbering any names already
+taken. Use it to reuse a team in another project or to share one.
+
 ### Git worktrees
 
 Agents that edit code in the same folder can overwrite each other. Tick **Own git worktree** when
