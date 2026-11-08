@@ -1,5 +1,5 @@
 import { EventEmitter } from 'node:events'
-import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { HR, nextId, slug, SYSTEM, YOU } from '@shared/ids'
 import { MAX_TEMPS, ROLE_TEMPLATES } from '@shared/templates'
@@ -326,6 +326,39 @@ export class Hive extends EventEmitter {
       }
     }
     return found.sort((a, b) => b.at - a.at)
+  }
+
+  /** Resolves a stuck mail file, refusing anything that isn't a plain file name in that folder. */
+  private stuckPath(kind: StuckMail['kind'], file: string): string {
+    if (kind !== 'held' && kind !== 'dead-letter') throw new Error(`Unknown mail folder ${kind}`)
+    if (basename(file) !== file || !file.endsWith('.md')) throw new Error(`Bad mail file ${file}`)
+    const path = join(this.root, kind, file)
+    if (!existsSync(path)) throw new Error(`No such mail ${file}`)
+    return path
+  }
+
+  /**
+   * Delivers stuck mail now. You decided, so the loop guard doesn't apply; the recipient must still be
+   * on the team (or be you).
+   */
+  releaseStuck(kind: StuckMail['kind'], file: string): HiveMessage {
+    const path = this.stuckPath(kind, file)
+    const mail = this.stuckMail().find((m) => m.kind === kind && m.file === file)
+    if (!mail) throw new Error(`Can't read ${file}`)
+    if (!mail.to || (mail.to !== YOU && !this.get(mail.to)))
+      throw new Error(`There's no \`${mail.to ?? '(no recipient)'}\` on the team to deliver to.`)
+    const msg = this.deliver(mail.from, mail.to, mail.body)
+    rmSync(path)
+    this.emit('stuck')
+    return msg
+  }
+
+  /** Moves stuck mail out of the way, to `.vandelay/discarded/`, rather than deleting it. */
+  discardStuck(kind: StuckMail['kind'], file: string): void {
+    const path = this.stuckPath(kind, file)
+    mkdirSync(join(this.root, 'discarded'), { recursive: true })
+    renameSync(path, join(this.root, 'discarded', file))
+    this.emit('stuck')
   }
 
   /** The same message to every agent except the sender, e.g. "stop what you're doing". */
