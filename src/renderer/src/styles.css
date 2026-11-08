@@ -627,6 +627,20 @@ main {
   color: #ffb000;
 }
 
+.settings h3 {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+.settings input[type='range'] {
+  accent-color: var(--accent);
+}
+
 .agent-form .actions {
   display: flex;
   justify-content: flex-end;
