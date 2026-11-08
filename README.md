@@ -225,8 +225,8 @@ when the window isn't focused. Sign in once inside an agent's terminal the first
 **Control room** (the default) is the Robotics Division: robots at workstations on a glowing grid,
 data packets running along circuit traces, unit cards, a status bar with units online, packets
 routed, uptime and a clock, and a boot sequence (click or press a key to skip). **Office theme** is
-the original warm office with desks and envelopes. Toggle in the header; **Sound** adds a short
-blip for each message (off by default). Both settings are remembered.
+the original warm office with desks and envelopes. Toggle in the header or in **Settings**, where a
+short blip for each message can also be switched on (it's off by default). Both are remembered.
 
 ### Comms log
 
