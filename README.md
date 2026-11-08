@@ -242,6 +242,7 @@ you, or **Export** what's shown as a Markdown transcript.
 | Ctrl+Shift+F | search the comms log |
 | Ctrl+Shift+C / Ctrl+Shift+V | copy / paste in an agent's terminal (Ctrl+C still interrupts the agent) |
 | Esc | close the hire or edit form |
+| Ctrl + mouse wheel (over a terminal) | bigger or smaller terminal text, remembered |
 | any key or click | skip the boot sequence |
 
 ### Git worktrees

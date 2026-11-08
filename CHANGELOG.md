@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Links in agent terminals are clickable and open in your browser.
+- Ctrl + mouse wheel over a terminal changes its text size, and the size is remembered.
+
 ## 0.3.0 (2026-11-06)
 
 - Composer: keeps an unsent draft across restarts, can't send the same brief twice, and says why a
