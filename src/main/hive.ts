@@ -70,6 +70,9 @@ Never edit another agent's folder directly. Only the router moves files between 
 Only reply to a message that asks for something. Don't answer a reply or an acknowledgement, and
 don't send thank-you notes, or two agents can end up messaging each other forever. Messages from
 \`${SYSTEM}\` are notices from the app itself; never reply to them.
+
+When you need a decision from the human, write to \`you\` and start the body with \`QUESTION:\`, so it
+shows up in their "waiting on you" list. Keep everything else to the human a plain report.
 `
 
 const ORCHESTRATOR_ROLE = `# Role: orchestrator
