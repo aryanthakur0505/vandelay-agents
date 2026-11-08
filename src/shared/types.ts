@@ -68,6 +68,11 @@ export interface VandelayApi {
   addAgent(agent: AgentInput): Promise<AgentConfig>
   /** Changes apply the next time the agent starts. */
   updateAgent(id: string, patch: Partial<AgentInput>): Promise<AgentConfig>
+  /**
+   * Asks for a team file and hires everyone in it. Resolves to the agents hired, or null if you
+   * cancelled; rejects with the reason when the file isn't a team.
+   */
+  importTeam(): Promise<AgentConfig[] | null>
   /** Stops the agent and moves its folder to `.vandelay/former/`. */
   removeAgent(id: string): Promise<void>
   startAgent(id: string, cols: number, rows: number): Promise<void>

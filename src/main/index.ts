@@ -1,9 +1,10 @@
-import { existsSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, dirname, extname, join } from 'node:path'
 import { app, BrowserWindow, dialog, ipcMain, Notification, screen, shell } from 'electron'
 import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
 import { isQuestion } from '@shared/messages'
+import { parseTeamFile } from '@shared/team'
 import type { AgentConfig, AgentFile, AgentInput, HiveMessage, StuckMail } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
@@ -172,6 +173,17 @@ function wire(): void {
   ipcMain.handle(IPC.agentsList, () => hive.list())
   ipcMain.handle(IPC.agentsAdd, (_e, input: AgentInput) => hive.add(input))
   ipcMain.handle(IPC.agentsUpdate, (_e, id: string, patch: Partial<AgentInput>) => hive.update(id, patch))
+  ipcMain.handle(IPC.teamImport, async () => {
+    // The file is picked and read here, so the renderer never names a path to read.
+    const { canceled, filePaths } = await dialog.showOpenDialog(win!, {
+      title: 'Import a team',
+      defaultPath: workspace,
+      filters: [{ name: 'Vandelay team', extensions: ['json'] }],
+      properties: ['openFile']
+    })
+    if (canceled || !filePaths[0]) return null
+    return hive.importTeam(parseTeamFile(readFileSync(filePaths[0], 'utf8')))
+  })
   ipcMain.handle(IPC.agentsRemove, (_e, id: string) => hive.remove(id))
   const starting = new Set<string>()
   ipcMain.handle(IPC.agentsStart, async (_e, id: string, cols: number, rows: number) => {
