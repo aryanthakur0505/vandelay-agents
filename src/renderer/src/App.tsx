@@ -11,6 +11,7 @@ import { FONT_SIZE, nextFontSize } from './format'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 import { StatusBar } from './StatusBar'
+import { openTasks } from './tasks'
 import { TermBar } from './TermBar'
 import { UnitCards, type Traffic } from './UnitCards'
 
@@ -162,6 +163,7 @@ export function App(): React.JSX.Element {
   }
 
   const current = agents.find((a) => a.id === selected)
+  const tasks = openTasks(log)
   const online = agents.filter((a) => {
     const s = statuses[a.id]
     return s === 'working' || s === 'idle'
@@ -222,6 +224,9 @@ export function App(): React.JSX.Element {
             agents={agents}
             workspace={workspace}
             onReply={(to) => setAim((a) => ({ to, n: (a?.n ?? 0) + 1 }))}
+            tasks={tasks}
+            now={now}
+            onSelect={select}
             orchestratorName={agents.find((a) => a.orchestrator)?.name ?? 'the orchestrator'}
           />
         </section>
