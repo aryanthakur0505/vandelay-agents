@@ -5,7 +5,7 @@ import { YOU } from '@shared/ids'
 import { IPC } from '@shared/ipc'
 import { isQuestion } from '@shared/messages'
 import { parseTeamFile } from '@shared/team'
-import type { AgentConfig, AgentFile, AgentInput, HiveMessage, StuckMail } from '@shared/types'
+import type { AgentConfig, AgentFile, AgentInput, AgentPatch, HiveMessage, StuckMail } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
 import { findExecutable, isShell, Terminals } from './terminals'
@@ -172,7 +172,7 @@ function wire(): void {
 
   ipcMain.handle(IPC.agentsList, () => hive.list())
   ipcMain.handle(IPC.agentsAdd, (_e, input: AgentInput) => hive.add(input))
-  ipcMain.handle(IPC.agentsUpdate, (_e, id: string, patch: Partial<AgentInput>) => hive.update(id, patch))
+  ipcMain.handle(IPC.agentsUpdate, (_e, id: string, patch: AgentPatch) => hive.update(id, patch))
   ipcMain.handle(IPC.teamImport, async () => {
     // The file is picked and read here, so the renderer never names a path to read.
     const { canceled, filePaths } = await dialog.showOpenDialog(win!, {

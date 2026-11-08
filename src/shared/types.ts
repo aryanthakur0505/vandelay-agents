@@ -32,6 +32,9 @@ export interface AgentConfig {
 /** Everything about an agent you choose when hiring; the hive picks the id and color. */
 export type AgentInput = Omit<AgentConfig, 'id' | 'color'>
 
+/** What an edit may change: anything you chose when hiring, plus the color. */
+export type AgentPatch = Partial<AgentInput> & { color?: string }
+
 /** Mail the router couldn't or wouldn't deliver. */
 export interface StuckMail {
   /** `held`: parked by the loop guard. `dead-letter`: unknown recipient or no `to:` line. */
@@ -67,7 +70,7 @@ export interface VandelayApi {
   listAgents(): Promise<AgentConfig[]>
   addAgent(agent: AgentInput): Promise<AgentConfig>
   /** Changes apply the next time the agent starts. */
-  updateAgent(id: string, patch: Partial<AgentInput>): Promise<AgentConfig>
+  updateAgent(id: string, patch: AgentPatch): Promise<AgentConfig>
   /**
    * Asks for a team file and hires everyone in it. Resolves to the agents hired, or null if you
    * cancelled; rejects with the reason when the file isn't a team.

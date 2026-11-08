@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, s
 import { basename, join } from 'node:path'
 import { HR, nextId, slug, SYSTEM, YOU } from '@shared/ids'
 import { MAX_TEMPS, ROLE_TEMPLATES } from '@shared/templates'
-import type { AgentConfig, AgentInput, HiveMessage, StuckMail } from '@shared/types'
+import type { AgentConfig, AgentInput, AgentPatch, HiveMessage, StuckMail } from '@shared/types'
 import { findExecutable } from './terminals'
 
 const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572', '#2a9d8f', '#d4a373']
@@ -225,12 +225,14 @@ export class Hive extends EventEmitter {
   }
 
   /** Changes take effect the next time the agent starts. */
-  update(id: string, patch: Partial<AgentInput>): AgentConfig {
+  update(id: string, patch: AgentPatch): AgentConfig {
     const agent = this.get(id)
     if (!agent) throw new Error(`Unknown agent ${id}`)
     const { orchestrator: _o, temp: _t, hiredBy: _h, ...allowed } = patch
     if (allowed.name !== undefined && !allowed.name.trim()) throw new Error('An agent needs a name.')
     if (allowed.name !== undefined) allowed.name = allowed.name.trim()
+    // Colors end up in CSS and on the canvas, so only plain #rrggbb.
+    if (allowed.color !== undefined && !/^#[0-9a-f]{6}$/i.test(allowed.color)) throw new Error(`Not a color: ${allowed.color}`)
     const oldName = agent.name
     const roleChanged = allowed.role !== undefined && allowed.role !== agent.role
     Object.assign(agent, allowed)
