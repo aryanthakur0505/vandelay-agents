@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { SYSTEM, YOU } from '@shared/ids'
-import type { AgentConfig, HiveMessage } from '@shared/types'
+import type { AgentConfig, HiveMessage, StuckMail } from '@shared/types'
 import { AgentForm } from './AgentForm'
 import { AgentTerminal } from './AgentTerminal'
 import { BootScreen } from './BootScreen'
@@ -31,6 +31,12 @@ export function App(): React.JSX.Element {
   const [form, setForm] = useState<{ edit?: AgentConfig } | null>(null)
   const [aim, setAim] = useState<{ to: string; n: number }>()
   const [commsView, setCommsView] = useState<CommsView>('comms')
+  const [stuck, setStuck] = useState<StuckMail[]>([])
+  useEffect(() => {
+    const refresh = (): void => void window.vandelay.stuckMail().then(setStuck)
+    refresh()
+    return window.vandelay.onStuckChanged(refresh)
+  }, [])
   const [now, setNow] = useState(Date.now())
   const [theme, setTheme] = usePref<Theme>('theme', 'control')
   const [sound, setSound] = usePref<boolean>('sound', false)
@@ -237,6 +243,7 @@ export function App(): React.JSX.Element {
             onReply={(to) => setAim((a) => ({ to, n: (a?.n ?? 0) + 1 }))}
             tasks={tasks}
             questions={questions}
+            stuck={stuck}
             view={commsView}
             onView={setCommsView}
             now={now}

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { SYSTEM, YOU } from '@shared/ids'
-import type { AgentConfig, HiveMessage } from '@shared/types'
+import type { AgentConfig, HiveMessage, StuckMail } from '@shared/types'
 import { commsFileName, commsMarkdown } from './commsExport'
 import { filterLog, NO_FILTER, type CommsFilter } from './commsFilter'
 import { addressLabel, time } from './format'
 import { isQuestion, type OpenTask } from './tasks'
+import { StuckPanel } from './StuckPanel'
 import { TasksPanel } from './TasksPanel'
 
-export type CommsView = 'comms' | 'tasks'
+export type CommsView = 'comms' | 'tasks' | 'stuck'
 
 interface Props {
   /** Newest first. */
@@ -19,6 +20,7 @@ interface Props {
   onReply(to: string): void
   tasks: OpenTask[]
   questions: HiveMessage[]
+  stuck: StuckMail[]
   now: number
   view: CommsView
   onView(view: CommsView): void
@@ -35,6 +37,7 @@ export function CommsLog({
   onReply,
   tasks,
   questions,
+  stuck,
   now,
   onSelect,
   view,
@@ -60,6 +63,12 @@ export function CommsLog({
           <button role="tab" aria-selected={view === 'tasks'} className={view === 'tasks' ? 'on' : ''} onClick={() => setView('tasks')}>
             Tasks{tasks.length + questions.length > 0 && ` (${tasks.length + questions.length})`}
           </button>
+          {/* Only there when something is stuck, so the bar stays quiet. */}
+          {(stuck.length > 0 || view === 'stuck') && (
+            <button role="tab" aria-selected={view === 'stuck'} className={view === 'stuck' ? 'on' : ''} onClick={() => setView('stuck')}>
+              Stuck ({stuck.length})
+            </button>
+          )}
         </span>
         {view === 'comms' && (
           <>
@@ -90,6 +99,7 @@ export function CommsLog({
           </>
         )}
       </div>
+      {view === 'stuck' && <StuckPanel mail={stuck} now={now} />}
       {view === 'tasks' && <TasksPanel tasks={tasks} questions={questions} now={now} onSelect={onSelect} onReply={onReply} />}
       {view === 'comms' && (
         <ul className="log">
