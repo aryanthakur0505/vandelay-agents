@@ -32,6 +32,18 @@ export interface AgentConfig {
 /** Everything about an agent you choose when hiring; the hive picks the id and color. */
 export type AgentInput = Omit<AgentConfig, 'id' | 'color'>
 
+/** Mail the router couldn't or wouldn't deliver. */
+export interface StuckMail {
+  /** `held`: parked by the loop guard. `dead-letter`: unknown recipient or no `to:` line. */
+  kind: 'held' | 'dead-letter'
+  /** File name inside `.vandelay/<kind>/`. */
+  file: string
+  from: string
+  to: string | null
+  body: string
+  at: number
+}
+
 export interface HiveMessage {
   id: string
   from: string

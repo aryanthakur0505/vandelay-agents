@@ -3,7 +3,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync,
 import { basename, join } from 'node:path'
 import { HR, nextId, slug, SYSTEM, YOU } from '@shared/ids'
 import { MAX_TEMPS, ROLE_TEMPLATES } from '@shared/templates'
-import type { AgentConfig, AgentInput, HiveMessage } from '@shared/types'
+import type { AgentConfig, AgentInput, HiveMessage, StuckMail } from '@shared/types'
 import { findExecutable } from './terminals'
 
 const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572', '#2a9d8f', '#d4a373']
@@ -302,6 +302,30 @@ export class Hive extends EventEmitter {
       }
     }
     return found.sort((a, b) => b.at - a.at || b.id.localeCompare(a.id)).slice(0, limit)
+  }
+
+  /** Mail sitting in `held/` and `dead-letter/`, newest first. Files are named `<sender>-<time>-<name>`. */
+  stuckMail(): StuckMail[] {
+    const found: StuckMail[] = []
+    for (const kind of ['held', 'dead-letter'] as const) {
+      let files: string[]
+      try {
+        files = readdirSync(join(this.root, kind)).filter((f) => f.endsWith('.md'))
+      } catch {
+        continue
+      }
+      for (const file of files) {
+        const m = /^(.+?)-(\d{13})-/.exec(file)
+        if (!m) continue
+        try {
+          const { to, body } = parseOutgoing(readFileSync(join(this.root, kind, file), 'utf8'))
+          found.push({ kind, file, from: m[1], to, body: body.trim(), at: Number(m[2]) })
+        } catch {
+          // Gone while we looked.
+        }
+      }
+    }
+    return found.sort((a, b) => b.at - a.at)
   }
 
   /** The same message to every agent except the sender, e.g. "stop what you're doing". */
