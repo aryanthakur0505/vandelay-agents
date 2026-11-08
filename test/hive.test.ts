@@ -300,6 +300,20 @@ describe('team management', () => {
     expect(hive.get('newman')!.role).toMatch(/^Security auditor/)
   })
 
+  it('imports a saved team with one notice, never as orchestrator or temps', () => {
+    const { h, mail } = makeHive()
+    const hired = h.importTeam([
+      { name: 'Kramer', command: 'claude', args: [], cwd: '', role: 'Second Kramer.' },
+      { name: 'Babu', command: 'claude', args: [], cwd: '', orchestrator: true, temp: true }
+    ])
+    expect(hired.map((a) => a.id)).toEqual(['kramer-2', 'babu'])
+    expect(h.get('babu')).toMatchObject({ orchestrator: undefined, temp: undefined })
+    expect(mail).toHaveLength(1)
+    expect(mail[0]).toContain('2 new hires from a saved team')
+    expect(h.importTeam([])).toEqual([])
+    expect(mail).toHaveLength(1)
+  })
+
   it('refuses hires without a name or command, and trims both', () => {
     const { h } = makeHive()
     expect(() => h.add({ name: '  ', command: 'claude', args: [], cwd: '' })).toThrow(/name/)
