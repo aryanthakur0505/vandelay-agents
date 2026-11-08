@@ -19,9 +19,11 @@ export function openTasks(log: HiveMessage[]): OpenTask[] {
   const oldestFirst = [...log].sort((a, b) => a.at - b.at || a.id.localeCompare(b.id))
   const open: OpenTask[] = []
   for (const m of oldestFirst) {
-    // A reply closes what the replier owed the recipient.
+    // A reply closes what the replier owed the recipient, and is a report, not a new request.
+    const before = open.length
     for (let i = open.length - 1; i >= 0; i--) if (open[i].owner === m.from && open[i].requester === m.to) open.splice(i, 1)
-    if (m.from !== SYSTEM && m.to !== YOU) open.push({ brief: m, owner: m.to, requester: m.from })
+    const isReply = open.length < before
+    if (!isReply && m.from !== SYSTEM && m.to !== YOU) open.push({ brief: m, owner: m.to, requester: m.from })
   }
   return open.reverse()
 }
