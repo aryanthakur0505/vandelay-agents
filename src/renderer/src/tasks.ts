@@ -1,5 +1,8 @@
 import { SYSTEM, YOU } from '@shared/ids'
+import { isQuestion } from '@shared/messages'
 import type { HiveMessage } from '@shared/types'
+
+export { isQuestion }
 
 export interface OpenTask {
   /** The brief that is still waiting. */
@@ -33,11 +36,6 @@ export function taskCounts(tasks: OpenTask[]): Record<string, number> {
   const counts: Record<string, number> = {}
   for (const t of tasks) counts[t.owner] = (counts[t.owner] ?? 0) + 1
   return counts
-}
-
-/** A message to the human that asks for a decision (agents start those with `QUESTION:`). */
-export function isQuestion(m: HiveMessage): boolean {
-  return m.to === YOU && /^\s*\**question\**\s*:/i.test(m.body)
 }
 
 /** Questions to the human that they haven't answered: no message from you to the asker since. */
