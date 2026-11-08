@@ -122,6 +122,32 @@ describe('Hive', () => {
     expect(mail.filter((m) => m === 'vandelay->you')).toHaveLength(1)
   })
 
+  it('lists stuck mail, releases it past the loop guard, and discards it', async () => {
+    const h = makeHive()
+    let stuckEvents = 0
+    h.on('stuck', () => stuckEvents++)
+    for (let i = 0; i < LOOP_LIMIT + 2; i++) post(h, i % 2 ? 'kramer' : 'elaine', `${i}.md`, `to: ${i % 2 ? 'elaine' : 'kramer'}\n---\nThanks ${i}!`)
+    post(h, 'george', 'lost.md', 'to: bania\n---\nAnyone?')
+    h.startRouter(50)
+    await until(() => h.stuckMail().length === 3)
+    h.stopRouter()
+    const stuck = h.stuckMail()
+    expect(stuck.filter((m) => m.kind === 'held')).toHaveLength(2)
+    expect(stuck.find((m) => m.kind === 'dead-letter')).toMatchObject({ from: 'george', to: 'bania', body: 'Anyone?' })
+    expect(stuckEvents).toBeGreaterThanOrEqual(3)
+
+    const held = stuck.find((m) => m.kind === 'held')!
+    const delivered = h.releaseStuck('held', held.file)
+    expect(delivered).toMatchObject({ from: held.from, to: held.to, body: held.body })
+    expect(() => h.releaseStuck('dead-letter', stuck.find((m) => m.kind === 'dead-letter')!.file)).toThrow(/no `bania`/)
+
+    const other = h.stuckMail().find((m) => m.kind === 'held')!
+    h.discardStuck('held', other.file)
+    expect(existsSync(join(h.root, 'discarded', other.file))).toBe(true)
+    expect(h.stuckMail().map((m) => m.kind)).toEqual(['dead-letter'])
+    expect(() => h.discardStuck('held', '../agents.json')).toThrow(/Bad mail file/)
+  })
+
   it('tells the sender when mail is undeliverable', async () => {
     const h = makeHive()
     const notices: string[] = []
