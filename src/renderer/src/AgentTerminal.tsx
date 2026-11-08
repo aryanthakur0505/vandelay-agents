@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
+import { WebLinksAddon } from '@xterm/addon-web-links'
 import type { AgentConfig } from '@shared/types'
 import { terminalTheme, type Theme } from './status'
 
@@ -27,6 +28,9 @@ export function AgentTerminal({ agent, visible, generation, theme }: Props): Rea
     })
     const f = new FitAddon()
     t.loadAddon(f)
+    // URLs agents print (PRs, docs, localhost servers) become clickable; the main process opens them
+    // in the browser, and only http(s) ones.
+    t.loadAddon(new WebLinksAddon((_e, uri) => window.open(uri)))
     t.open(host.current!)
     term.current = t
     fit.current = f
