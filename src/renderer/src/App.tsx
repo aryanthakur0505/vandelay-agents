@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { SYSTEM, YOU } from '@shared/ids'
 import type { AgentConfig, HiveMessage } from '@shared/types'
 import { AgentForm } from './AgentForm'
@@ -163,7 +163,8 @@ export function App(): React.JSX.Element {
   }
 
   const current = agents.find((a) => a.id === selected)
-  const tasks = openTasks(log)
+  // The clock re-renders the app every 400ms; only the log changes what's open.
+  const tasks = useMemo(() => openTasks(log), [log])
   const online = agents.filter((a) => {
     const s = statuses[a.id]
     return s === 'working' || s === 'idle'
