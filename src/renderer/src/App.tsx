@@ -47,7 +47,14 @@ export function App(): React.JSX.Element {
   const [booting, setBooting] = useState(theme === 'control' && !matchMedia('(prefers-reduced-motion: reduce)').matches)
 
   const lastOutput = useRef<Record<string, number>>({})
-  const upSince = useRef<Record<string, number>>({})
+  /** When each running agent first printed something. Rendered, so it is state; set once per run. */
+  const [upSince, setUpSince] = useState<Record<string, number>>({})
+  const dropUpSince = (id: string): void =>
+    setUpSince((u) => {
+      if (!(id in u)) return u
+      const { [id]: _gone, ...rest } = u
+      return rest
+    })
   const exited = useRef<Set<string>>(new Set())
   const selectedRef = useLatest(selected)
   const soundRef = useLatest(sound)
@@ -76,12 +83,13 @@ export function App(): React.JSX.Element {
     })
     const offData = window.vandelay.onData((id) => {
       lastOutput.current[id] = Date.now()
-      upSince.current[id] ??= Date.now()
+      // Returning the same object for agents already up keeps this from re-rendering per chunk.
+      setUpSince((u) => (id in u ? u : { ...u, [id]: Date.now() }))
       exited.current.delete(id)
     })
     const offExit = window.vandelay.onExit((id) => {
       exited.current.add(id)
-      delete upSince.current[id]
+      dropUpSince(id)
     })
     const offDelivered = window.vandelay.onDelivered((msg) => {
       setLog((l) => [msg, ...l].slice(0, 200))
@@ -160,7 +168,7 @@ export function App(): React.JSX.Element {
     await window.vandelay.stopAgent(id)
     exited.current.delete(id)
     delete lastOutput.current[id]
-    delete upSince.current[id]
+    dropUpSince(id)
     setGenerations((g) => ({ ...g, [id]: (g[id] ?? 0) + 1 }))
   }
 
@@ -273,7 +281,7 @@ export function App(): React.JSX.Element {
             unread={unread}
             traffic={traffic}
             owed={taskCounts(tasks)}
-            upSince={upSince.current}
+            upSince={upSince}
             now={now}
             selected={selected}
             theme={theme}
