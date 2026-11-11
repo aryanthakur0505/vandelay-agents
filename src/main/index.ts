@@ -8,6 +8,7 @@ import { parseTeamFile } from '@shared/team'
 import type { AgentConfig, AgentFile, HiveMessage, StuckMail } from '@shared/types'
 import { claudeArgs, claudeHookArgs, isClaude, stopOrphans } from './claudeHooks'
 import { Hive } from './hive'
+import { checkSetup } from './setup'
 import { findExecutable, isShell, Terminals } from './terminals'
 import { askForWorkspace, chooseWorkspace, relaunchArgs } from './workspace'
 import { DEFAULT_SIZE, loadWindowState, MIN_SIZE, saveWindowState, usableBounds } from './windowState'
@@ -151,6 +152,7 @@ function wire(): void {
   })
 
   ipcMain.handle(IPC.workspace, () => workspace)
+  ipcMain.handle(IPC.setupStatus, () => checkSetup(workspace))
   ipcMain.handle(IPC.logOpen, async () => {
     await shell.openPath(app.getPath('logs'))
   })

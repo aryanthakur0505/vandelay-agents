@@ -14,6 +14,7 @@ const api: VandelayApi = {
   saveText: (defaultName, text) => ipcRenderer.invoke(IPC.saveText, defaultName, text),
   commandExists: (command) => ipcRenderer.invoke(IPC.commandExists, command),
   reportError: (message) => ipcRenderer.send(IPC.logError, message),
+  setupStatus: () => ipcRenderer.invoke(IPC.setupStatus),
   openLogs: () => ipcRenderer.invoke(IPC.logOpen),
   listAgents: () => ipcRenderer.invoke(IPC.agentsList),
   addAgent: (agent) => ipcRenderer.invoke(IPC.agentsAdd, agent),
