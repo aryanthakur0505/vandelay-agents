@@ -647,6 +647,39 @@ main {
   gap: 8px;
 }
 
+/* Setup check ------------------------------------------------------------------------------ */
+
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.checklist p {
+  margin: 2px 0 0 20px;
+}
+
+.checklist a {
+  margin-left: 20px;
+  font-size: 12px;
+  color: var(--accent);
+}
+
+.checklist .ok b {
+  color: var(--highlight);
+}
+
+.checklist .missing b {
+  color: #ff4d5e;
+}
+
+.checklist .maybe b {
+  color: #ffb000;
+}
+
 /* Crash screen ------------------------------------------------------------------------------ */
 
 .crash {
