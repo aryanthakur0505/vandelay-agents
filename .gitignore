@@ -16,3 +16,7 @@ Thumbs.db
 .env.*
 
 *.tsbuildinfo
+
+# Playwright output
+test-results/
+playwright-report/

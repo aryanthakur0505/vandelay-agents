@@ -15,6 +15,8 @@
     }
   },
   "include": [
+    "playwright.config.ts",
+    "e2e/**/*",
     "electron.vite.config.ts",
     "src/main/**/*",
     "src/preload/**/*",
