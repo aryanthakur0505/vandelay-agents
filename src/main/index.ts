@@ -11,6 +11,7 @@ import { Hive } from './hive'
 import { findExecutable, isShell, Terminals } from './terminals'
 import { askForWorkspace, chooseWorkspace, relaunchArgs } from './workspace'
 import { DEFAULT_SIZE, loadWindowState, MIN_SIZE, saveWindowState, usableBounds } from './windowState'
+import * as check from './ipcGuards'
 import { ensureWorktree } from './worktrees'
 
 // Opt-in Chrome DevTools Protocol port, handy for driving the UI from scripts.
@@ -149,8 +150,13 @@ function wire(): void {
   })
 
   ipcMain.handle(IPC.workspace, () => workspace)
-  ipcMain.handle(IPC.commandExists, (_e, command: string) => Boolean(command.trim() && findExecutable(command.trim())))
-  ipcMain.handle(IPC.saveText, async (_e, defaultName: string, text: string) => {
+  ipcMain.handle(IPC.commandExists, (_e, command: unknown) => {
+    const name = check.text(command, 'command', 1000).trim()
+    return Boolean(name && findExecutable(name))
+  })
+  ipcMain.handle(IPC.saveText, async (_e, rawName: unknown, rawText: unknown) => {
+    const defaultName = check.text(rawName, 'file name', 255)
+    const text = check.text(rawText, 'text', 50_000_000)
     const { canceled, filePath } = await dialog.showSaveDialog(win!, {
       defaultPath: join(workspace, basename(defaultName)),
       filters: [extname(defaultName) === '.json' ? { name: 'JSON', extensions: ['json'] } : { name: 'Markdown', extensions: ['md'] }]
@@ -174,8 +180,8 @@ function wire(): void {
   })
 
   ipcMain.handle(IPC.agentsList, () => hive.list())
-  ipcMain.handle(IPC.agentsAdd, (_e, input: AgentInput) => hive.add(input))
-  ipcMain.handle(IPC.agentsUpdate, (_e, id: string, patch: AgentPatch) => hive.update(id, patch))
+  ipcMain.handle(IPC.agentsAdd, (_e, input: unknown) => hive.add(check.agentInput(input)))
+  ipcMain.handle(IPC.agentsUpdate, (_e, id: unknown, patch: unknown) => hive.update(check.text(id, 'id', 100), check.agentPatch(patch)))
   ipcMain.handle(IPC.teamImport, async () => {
     // The file is picked and read here, so the renderer never names a path to read.
     const { canceled, filePaths } = await dialog.showOpenDialog(win!, {
@@ -187,9 +193,12 @@ function wire(): void {
     if (canceled || !filePaths[0]) return null
     return hive.importTeam(parseTeamFile(readFileSync(filePaths[0], 'utf8')))
   })
-  ipcMain.handle(IPC.agentsRemove, (_e, id: string) => hive.remove(id))
+  ipcMain.handle(IPC.agentsRemove, (_e, id: unknown) => hive.remove(check.text(id, 'id', 100)))
   const starting = new Set<string>()
-  ipcMain.handle(IPC.agentsStart, async (_e, id: string, cols: number, rows: number) => {
+  ipcMain.handle(IPC.agentsStart, async (_e, rawId: unknown, rawCols: unknown, rawRows: unknown) => {
+    const id = check.text(rawId, 'id', 100)
+    const cols = check.int(rawCols, 'cols', 1, 2000)
+    const rows = check.int(rawRows, 'rows', 1, 1000)
     const agent = hive.get(id)
     if (!agent) throw new Error(`Unknown agent ${id}`)
     if (terminals.isRunning(id)) return terminals.resize(id, cols, rows)
@@ -208,29 +217,39 @@ function wire(): void {
       starting.delete(id)
     }
   })
-  ipcMain.handle(IPC.agentsStop, (_e, id: string) => terminals.stop(id))
-  const OPENABLE: AgentFile[] = ['memory.md', 'ROLE.md']
-  ipcMain.handle(IPC.agentsOpen, async (_e, id: string, file?: AgentFile) => {
+  ipcMain.handle(IPC.agentsStop, (_e, id: unknown) => terminals.stop(check.text(id, 'id', 100)))
+  const OPENABLE: readonly AgentFile[] = ['memory.md', 'ROLE.md']
+  const STUCK_KINDS: readonly StuckMail['kind'][] = ['held', 'dead-letter']
+  ipcMain.handle(IPC.agentsOpen, async (_e, rawId: unknown, rawFile: unknown) => {
     // Only known agents and known files: the renderer never gets to open an arbitrary path.
-    if (!hive.get(id) || (file && !OPENABLE.includes(file))) return
+    const id = check.text(rawId, 'id', 100)
+    const file = rawFile === undefined ? undefined : check.oneOf(rawFile, 'file', OPENABLE)
+    if (!hive.get(id)) return
     const error = await shell.openPath(file ? join(hive.agentDir(id), file) : hive.agentDir(id))
     if (error) console.error('[vandelay] could not open', id, file, error)
   })
-  ipcMain.handle(IPC.hiveSend, (_e, to: string, body: string) => {
-    hive.deliver(YOU, to, body)
+  ipcMain.handle(IPC.hiveSend, (_e, to: unknown, body: unknown) => {
+    hive.deliver(YOU, check.text(to, 'recipient', 100), check.text(body, 'message'))
   })
   ipcMain.handle(IPC.hiveHistory, () => hive.history())
   ipcMain.handle(IPC.hiveStuck, () => hive.stuckMail())
-  ipcMain.handle(IPC.hiveRelease, (_e, kind: StuckMail['kind'], file: string) => {
-    hive.releaseStuck(kind, file)
+  ipcMain.handle(IPC.hiveRelease, (_e, kind: unknown, file: unknown) => {
+    hive.releaseStuck(check.oneOf(kind, 'kind', STUCK_KINDS), check.text(file, 'file', 300))
   })
-  ipcMain.handle(IPC.hiveDiscard, (_e, kind: StuckMail['kind'], file: string) => hive.discardStuck(kind, file))
+  ipcMain.handle(IPC.hiveDiscard, (_e, kind: unknown, file: unknown) =>
+    hive.discardStuck(check.oneOf(kind, 'kind', STUCK_KINDS), check.text(file, 'file', 300))
+  )
   hive.on('stuck', () => send(IPC.hiveStuckChanged))
-  ipcMain.handle(IPC.hiveBroadcast, (_e, body: string) => {
-    hive.broadcast(YOU, body)
+  ipcMain.handle(IPC.hiveBroadcast, (_e, body: unknown) => {
+    hive.broadcast(YOU, check.text(body, 'message'))
   })
-  ipcMain.on(IPC.ptyWrite, (_e, id: string, data: string) => terminals.write(id, data))
-  ipcMain.on(IPC.ptyResize, (_e, id: string, cols: number, rows: number) => terminals.resize(id, cols, rows))
+  // Fire-and-forget channels: a bad message is dropped, since throwing here has nowhere to go.
+  ipcMain.on(IPC.ptyWrite, (_e, id: unknown, data: unknown) => {
+    if (typeof id === 'string' && typeof data === 'string') terminals.write(id, data)
+  })
+  ipcMain.on(IPC.ptyResize, (_e, id: unknown, cols: unknown, rows: unknown) => {
+    if (typeof id === 'string' && Number.isInteger(cols) && Number.isInteger(rows)) terminals.resize(id, cols as number, rows as number)
+  })
 }
 
 app.whenReady().then(() => {
