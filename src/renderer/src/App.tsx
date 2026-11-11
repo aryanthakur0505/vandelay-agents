@@ -39,7 +39,7 @@ export function App(): React.JSX.Element {
     refresh()
     return window.vandelay.onStuckChanged(refresh)
   }, [])
-  const [now, setNow] = useState(Date.now())
+  const [now, setNow] = useState(() => Date.now())
   const [theme, setTheme] = usePref<Theme>('theme', 'control')
   const [sound, setSound] = usePref<boolean>('sound', false)
   const [fontSize, setFontSize] = usePref<number>('fontSize', FONT_SIZE.default)
