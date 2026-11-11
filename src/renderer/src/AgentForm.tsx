@@ -37,7 +37,7 @@ export function AgentForm({ agent, copyOf, takenIds, onSave, onCancel }: Props):
   }, [program])
   const claude = /^claude(\.exe|\.cmd)?$/i.test(program)
 
-  const useTemplate = (index: string): void => {
+  const applyTemplate = (index: string): void => {
     const t = ROLE_TEMPLATES[Number(index)]
     if (!t) return
     setName(t.name)
@@ -70,7 +70,7 @@ export function AgentForm({ agent, copyOf, takenIds, onSave, onCancel }: Props):
         {!editing && !copyOf && (
           <label>
             Start from a role
-            <select defaultValue="" onChange={(e) => useTemplate(e.target.value)}>
+            <select defaultValue="" onChange={(e) => applyTemplate(e.target.value)}>
               <option value="">Blank</option>
               {ROLE_TEMPLATES.map((t, i) => (
                 <option key={t.name} value={i}>
