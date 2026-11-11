@@ -12,11 +12,13 @@ interface Props {
   fontSize: number
   onFontSize(size: number): void
   agents: AgentConfig[]
+  /** Show the claude / node / git checklist. */
+  onCheckSetup(): void
   onClose(): void
 }
 
 /** Preferences that don't belong in the header. Everything here is saved per computer. */
-export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFontSize, agents, onClose }: Props): React.JSX.Element {
+export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFontSize, agents, onCheckSetup, onClose }: Props): React.JSX.Element {
   const [teamNote, setTeamNote] = useState('')
   const staff = agents.filter((a) => !a.orchestrator && !a.temp).length
 
@@ -73,6 +75,9 @@ export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFont
         <div className="row">
           <button type="button" onClick={() => window.vandelay.openLogs()}>
             Open logs folder
+          </button>
+          <button type="button" onClick={onCheckSetup}>
+            Check setup
           </button>
         </div>
 

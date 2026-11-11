@@ -256,6 +256,10 @@ export function App(): React.JSX.Element {
           fontSize={fontSize}
           onFontSize={setFontSize}
           agents={agents}
+          onCheckSetup={() => {
+            setSettingsOpen(false)
+            setSetupOpen(true)
+          }}
           onClose={() => setSettingsOpen(false)}
         />
       )}
