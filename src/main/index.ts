@@ -48,8 +48,11 @@ function createWindow(): void {
     autoHideMenuBar: true,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
+      // The renderer gets no Node.js at all: everything it can do goes through the preload bridge,
+      // whose bundle only needs `electron`, so it runs in Chromium's sandbox.
       contextIsolation: true,
-      sandbox: false
+      nodeIntegration: false,
+      sandbox: true
     }
   })
 
