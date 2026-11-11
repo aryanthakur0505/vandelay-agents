@@ -35,9 +35,12 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           WIN_CSC_LINK: ${{ secrets.WIN_CERT_PFX_BASE64 }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
+      - run: node scripts/release-notes.mjs ${{ github.ref_name }} > release-notes.md
       - uses: softprops/action-gh-release@v2
         with:
           draft: false
+          # The CHANGELOG section first, then GitHub's list of commits since the last release.
+          body_path: release-notes.md
           generate_release_notes: true
           # The .yml and .blockmap files are what installed copies read to update themselves.
           files: |
