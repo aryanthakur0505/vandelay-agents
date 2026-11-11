@@ -510,7 +510,10 @@ export class Hive extends EventEmitter {
 
 /** Reads a message the hive delivered (its `from:`, `to:` and `at:` header), or null for anything else. */
 export function parseDelivered(text: string, file: string): HiveMessage | null {
-  const lines = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').split('\n')
+  const lines = text
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
   const sep = lines.indexOf('---')
   if (sep === -1) return null
   const head: Record<string, string> = {}
@@ -537,7 +540,10 @@ export function parseDelivered(text: string, file: string): HiveMessage | null {
 /** Reads `to: <id>` from the header lines above `---`. Without a separator the whole file is the body. */
 export function parseOutgoing(text: string): { to: string | null; body: string } {
   // PowerShell's Set-Content -Encoding utf8 writes a byte-order mark.
-  const lines = text.replace(/^﻿/, '').replace(/\r\n/g, '\n').split('\n')
+  const lines = text
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .split('\n')
   const sep = lines.findIndex((l) => l.trim() === '---')
   if (sep === -1) return { to: null, body: text }
   let to: string | null = null
