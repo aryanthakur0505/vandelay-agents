@@ -24,10 +24,15 @@ export function Composer({ agents, defaultTo, aim }: Props): React.JSX.Element {
   /** Which past brief is showing: -1 while writing a new one. */
   const [browsing, setBrowsing] = useState(-1)
   const box = useRef<HTMLTextAreaElement>(null)
+  // A new aim picks the recipient right away (during render, React's pattern for state that
+  // follows a prop), and focuses the box once it is on screen.
+  const [aimed, setAimed] = useState(aim)
+  if (aim !== aimed) {
+    setAimed(aim)
+    if (aim) setTo(aim.to)
+  }
   useEffect(() => {
-    if (!aim) return
-    setTo(aim.to)
-    box.current?.focus()
+    if (aim) box.current?.focus()
   }, [aim])
   const target = to === EVERYONE || agents.some((a) => a.id === to) ? to : defaultTo
 
