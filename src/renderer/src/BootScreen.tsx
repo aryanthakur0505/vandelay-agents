@@ -28,13 +28,13 @@ export function BootScreen({ agents, onDone }: { agents: AgentConfig[]; onDone()
     }
     const t = setTimeout(() => setShown((n) => n + 1), STEP_MS)
     return () => clearTimeout(t)
-  }, [shown, lines.length])
+  }, [shown, lines.length, done])
 
   useEffect(() => {
     const skip = (): void => done.current()
     window.addEventListener('keydown', skip)
     return () => window.removeEventListener('keydown', skip)
-  }, [])
+  }, [done])
 
   return (
     <div className="boot" onClick={() => done.current()}>

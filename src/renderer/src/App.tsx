@@ -126,7 +126,7 @@ export function App(): React.JSX.Element {
       offDelivered()
       clearInterval(tick)
     }
-  }, [])
+  }, [selectedRef, soundRef])
 
   const select = (id: string): void => {
     setSelected(id)
@@ -147,7 +147,7 @@ export function App(): React.JSX.Element {
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [])
+  }, [agentsRef])
 
   // Ctrl+Shift+K jumps to the composer and Ctrl+Shift+F to the comms search, terminals included (Ctrl+Shift is the usual
   // terminal-app modifier, so agent CLIs don't expect those keys).

@@ -115,7 +115,7 @@ export function AgentTerminal({ agent, visible, generation, theme, fontSize, onZ
     // Not passive, so preventDefault keeps the terminal from scrolling while zooming.
     el.addEventListener('wheel', onWheel, { passive: false, capture: true })
     return () => el.removeEventListener('wheel', onWheel, { capture: true })
-  }, [])
+  }, [zoom])
 
   return <div ref={host} className="terminal-host" style={{ visibility: visible ? 'visible' : 'hidden' }} />
 }

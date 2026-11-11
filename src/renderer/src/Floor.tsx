@@ -429,7 +429,7 @@ export function Floor(props: Props): React.JSX.Element {
     }
     frame = requestAnimationFrame(draw)
     return () => cancelAnimationFrame(frame)
-  }, [])
+  }, [latest])
 
   const onClick = (e: React.MouseEvent<HTMLCanvasElement>): void => {
     const c = canvas.current!
