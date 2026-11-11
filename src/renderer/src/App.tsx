@@ -37,6 +37,8 @@ export function App(): React.JSX.Element {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [setupSeen, setSetupSeen] = usePref<boolean>('setupSeen', false)
   const [setupOpen, setSetupOpen] = useState(false)
+  const [update, setUpdate] = useState<string | null>(null)
+  useEffect(() => window.vandelay.onUpdateReady(setUpdate), [])
   // The checklist shows on the first run, and again whenever an essential tool goes missing.
   useEffect(() => {
     window.vandelay.setupStatus().then((s) => {
@@ -237,6 +239,16 @@ export function App(): React.JSX.Element {
           </button>
         </div>
       </header>
+
+      {update && (
+        <div className="update-bar" role="status">
+          Version {update} is ready. It installs when you quit, or now:
+          <button className="primary" onClick={() => window.vandelay.installUpdate()} title="Stops the agents and restarts the app">
+            Restart to update
+          </button>
+          <button onClick={() => setUpdate(null)}>Later</button>
+        </div>
+      )}
 
       {setupOpen && !booting && (
         <SetupCheck
