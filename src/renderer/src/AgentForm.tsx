@@ -29,10 +29,12 @@ export function AgentForm({ agent, copyOf, takenIds, onSave, onCancel }: Props):
   const editing = Boolean(agent)
   const program = command.trim().split(/\s+/)[0] ?? ''
   // Check as you type (debounced) so a typo shows up before the agent fails to start.
-  const [found, setFound] = useState(true)
+  // The answer is kept with the command it was for, so a stale answer never shows for a new one.
+  const [lookup, setLookup] = useState<{ program: string; found: boolean }>()
+  const found = !program || lookup?.program !== program || lookup.found
   useEffect(() => {
-    if (!program) return setFound(true)
-    const t = setTimeout(() => window.vandelay.commandExists(program).then(setFound), 300)
+    if (!program) return
+    const t = setTimeout(() => window.vandelay.commandExists(program).then((ok) => setLookup({ program, found: ok })), 300)
     return () => clearTimeout(t)
   }, [program])
   const claude = /^claude(\.exe|\.cmd)?$/i.test(program)
