@@ -15,6 +15,9 @@ your files, in the folder you choose. Treat it like any tool that can run comman
 - Two agents stuck replying to each other have their mail held after 12 messages in a minute.
 - The app window can't be navigated away from the app, and only `http(s)` links open in your browser.
 - The renderer can only open an agent's own folder, `memory.md` or `ROLE.md`, never an arbitrary path.
+- The renderer runs in Chromium's sandbox with no Node.js; it reaches the system only through a small
+  preload bridge, and the main process checks the type and size of every argument it receives.
+- Team files are picked and read by the main process; the renderer never names a file to read.
 
 ## Reporting a vulnerability
 
