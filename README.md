@@ -56,8 +56,14 @@ Download the installer for your system from the [latest release](../../releases/
 | System | File | First launch |
 | --- | --- | --- |
 | Windows 10/11 (x64) | `vandelay-agents-x.y.z-win-x64.exe` | The installer isn't code-signed, so SmartScreen warns: click **More info → Run anyway**. |
-| macOS (Apple silicon) | `vandelay-agents-x.y.z-mac-arm64.dmg` | Not notarized: drag the app to Applications, then run `xattr -cr "/Applications/Vandelay Agents.app"` once. |
-| Linux (x64) | `vandelay-agents-x.y.z-linux-*.AppImage` | `chmod +x` the file, then run it. |
+| macOS (Apple silicon / Intel) | `vandelay-agents-x.y.z-mac-arm64.dmg` / `…-mac-x64.dmg` | Not notarized: drag the app to Applications, then run `xattr -cr "/Applications/Vandelay Agents.app"` once. |
+| Linux (x64) | `vandelay-agents-x.y.z-linux-*.AppImage`, or the `.deb` for Debian and Ubuntu | AppImage: `chmod +x` the file, then run it. `.deb`: `sudo apt install ./vandelay-agents-*.deb`. |
+
+**Updates.** On Windows and Linux (AppImage) the app checks GitHub for a new release at start-up and
+every six hours, downloads it in the background, and offers **Restart to update** (or installs when
+you quit). macOS only installs updates into signed apps, so there you download new releases yourself
+for now. Releases will be signed once the certificates are in place; see
+[docs/SIGNING.md](docs/SIGNING.md).
 
 On first launch the app asks which folder your agents should work in (usually a project folder),
 then shows a setup check: whether `claude`, `node` and `git` are installed, what each is for, and

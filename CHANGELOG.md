@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Auto-update on Windows and Linux from GitHub Releases, with **Restart to update**.
+- Installers for Intel Macs and a `.deb` for Debian and Ubuntu.
+- Releases sign themselves once certificates are added (docs/SIGNING.md); release notes come from
+  this changelog.
+- Dependabot and CodeQL keep dependencies current and scan the code.
 - First-run setup check for `claude`, `node` and `git`, with install links; also in Settings.
 - Errors are logged to `vandelay.log` (Settings → Open logs folder), and a UI crash shows a recovery
   screen instead of a blank window.
