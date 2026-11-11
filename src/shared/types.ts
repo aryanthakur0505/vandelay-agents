@@ -78,6 +78,10 @@ export interface VandelayApi {
   commandExists(command: string): Promise<boolean>
   /** Which tools are installed, for the first-run checklist. */
   setupStatus(): Promise<SetupStatus>
+  /** A newer version has downloaded; the callback gets its version. */
+  onUpdateReady(cb: (version: string) => void): () => void
+  /** Restarts into the downloaded update. */
+  installUpdate(): Promise<void>
   /** Writes a renderer error to the app's log file. */
   reportError(message: string): void
   /** Opens the folder with the app's log files. */

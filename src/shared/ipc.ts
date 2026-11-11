@@ -27,5 +27,7 @@ export const IPC = {
   ptyData: 'pty:data',
   ptyExit: 'pty:exit',
   logError: 'log:error',
+  updateReady: 'update:ready',
+  updateInstall: 'update:install',
   logOpen: 'log:open'
 } as const
