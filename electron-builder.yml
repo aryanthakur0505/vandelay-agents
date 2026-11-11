@@ -12,6 +12,11 @@ files:
 asarUnpack:
   - node_modules/node-pty/**
 npmRebuild: false
+# Where installed copies look for updates (electron-updater reads latest*.yml from the release).
+publish:
+  provider: github
+  owner: aryanthakur0505
+  repo: vandelay-agents
 win:
   target: nsis
 nsis:

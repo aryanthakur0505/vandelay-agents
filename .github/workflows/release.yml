@@ -29,7 +29,12 @@ jobs:
         with:
           draft: false
           generate_release_notes: true
+          # The .yml and .blockmap files are what installed copies read to update themselves.
           files: |
             release/*.exe
             release/*.dmg
+            release/*.zip
             release/*.AppImage
+            release/*.deb
+            release/*.yml
+            release/*.blockmap
