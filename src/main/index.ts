@@ -151,6 +151,9 @@ function wire(): void {
   })
 
   ipcMain.handle(IPC.workspace, () => workspace)
+  ipcMain.handle(IPC.logOpen, async () => {
+    await shell.openPath(app.getPath('logs'))
+  })
   ipcMain.handle(IPC.commandExists, (_e, command: unknown) => {
     const name = check.text(command, 'command', 1000).trim()
     return Boolean(name && findExecutable(name))
@@ -245,6 +248,9 @@ function wire(): void {
     hive.broadcast(YOU, check.text(body, 'message'))
   })
   // Fire-and-forget channels: a bad message is dropped, since throwing here has nowhere to go.
+  ipcMain.on(IPC.logError, (_e, message: unknown) => {
+    if (typeof message === 'string') log.error('[renderer]', message.slice(0, 10_000))
+  })
   ipcMain.on(IPC.ptyWrite, (_e, id: unknown, data: unknown) => {
     if (typeof id === 'string' && typeof data === 'string') terminals.write(id, data)
   })

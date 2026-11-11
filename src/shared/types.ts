@@ -65,6 +65,10 @@ export interface VandelayApi {
   saveText(defaultName: string, text: string): Promise<string | null>
   /** Whether a command can be found on PATH (or at the path given), for the hire form. */
   commandExists(command: string): Promise<boolean>
+  /** Writes a renderer error to the app's log file. */
+  reportError(message: string): void
+  /** Opens the folder with the app's log files. */
+  openLogs(): Promise<void>
   /** Pick another folder; the app restarts there. */
   changeWorkspace(): Promise<void>
   listAgents(): Promise<AgentConfig[]>

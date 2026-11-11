@@ -24,5 +24,7 @@ export const IPC = {
   ptyWrite: 'pty:write',
   ptyResize: 'pty:resize',
   ptyData: 'pty:data',
-  ptyExit: 'pty:exit'
+  ptyExit: 'pty:exit',
+  logError: 'log:error',
+  logOpen: 'log:open'
 } as const
