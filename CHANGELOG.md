@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- First-run setup check for `claude`, `node` and `git`, with install links; also in Settings.
 - Errors are logged to `vandelay.log` (Settings → Open logs folder), and a UI crash shows a recovery
   screen instead of a blank window.
 - The renderer runs sandboxed, and every IPC argument is checked in the main process.

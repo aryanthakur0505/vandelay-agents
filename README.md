@@ -59,7 +59,9 @@ Download the installer for your system from the [latest release](../../releases/
 | macOS (Apple silicon) | `vandelay-agents-x.y.z-mac-arm64.dmg` | Not notarized: drag the app to Applications, then run `xattr -cr "/Applications/Vandelay Agents.app"` once. |
 | Linux (x64) | `vandelay-agents-x.y.z-linux-*.AppImage` | `chmod +x` the file, then run it. |
 
-On first launch the app asks which folder your agents should work in (usually a project folder).
+On first launch the app asks which folder your agents should work in (usually a project folder),
+then shows a setup check: whether `claude`, `node` and `git` are installed, what each is for, and
+where to get it. **Settings → Check setup** runs it again.
 
 To get real agents rather than plain shells, you also need:
 
