@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { AgentConfig } from '@shared/types'
+import { useLatest } from './hooks'
 import { unitTag } from './status'
 
 const STEP_MS = 140
@@ -18,8 +19,7 @@ export function BootScreen({ agents, onDone }: { agents: AgentConfig[]; onDone()
   ]
   const [shown, setShown] = useState(0)
   // The parent re-renders every tick with a new callback; keep timers from restarting with it.
-  const done = useRef(onDone)
-  done.current = onDone
+  const done = useLatest(onDone)
 
   useEffect(() => {
     if (shown >= lines.length) {
