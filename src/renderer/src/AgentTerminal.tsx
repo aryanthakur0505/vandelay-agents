@@ -3,6 +3,7 @@ import { Terminal } from '@xterm/xterm'
 import { FitAddon } from '@xterm/addon-fit'
 import { WebLinksAddon } from '@xterm/addon-web-links'
 import type { AgentConfig } from '@shared/types'
+import { useLatest } from './hooks'
 import { terminalTheme, type Theme } from './status'
 
 interface Props {
@@ -103,8 +104,7 @@ export function AgentTerminal({ agent, visible, generation, theme, fontSize, onZ
     }
   }, [fontSize, agent.id])
 
-  const zoom = useRef(onZoom)
-  zoom.current = onZoom
+  const zoom = useLatest(onZoom)
   useEffect(() => {
     const el = host.current!
     const onWheel = (e: WheelEvent): void => {
