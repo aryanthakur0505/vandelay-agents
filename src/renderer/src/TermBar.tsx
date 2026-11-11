@@ -7,13 +7,15 @@ interface Props {
   /** Whether its terminal is running, so Stop makes sense. */
   running: boolean
   onEdit(): void
+  /** Hire another agent like this one. */
+  onClone(): void
   onFire(): void
   onRestart(): void
   onStop(): void
 }
 
 /** What the selected agent runs and does, with its controls. */
-export function TermBar({ agent, task, running, onEdit, onFire, onRestart, onStop }: Props): React.JSX.Element {
+export function TermBar({ agent, task, running, onEdit, onClone, onFire, onRestart, onStop }: Props): React.JSX.Element {
   return (
     <div className="term-bar">
       <div className="term-info">
@@ -35,6 +37,9 @@ export function TermBar({ agent, task, running, onEdit, onFire, onRestart, onSto
         Memory
       </button>
       <button onClick={onEdit}>Edit</button>
+      <button onClick={onClone} title="Hire another agent set up like this one">
+        Clone
+      </button>
       {!agent.orchestrator && <button onClick={onFire}>Let go</button>}
       {running && (
         <button onClick={onStop} title="Stop the terminal; the agent stays on the team. Restart brings it back.">

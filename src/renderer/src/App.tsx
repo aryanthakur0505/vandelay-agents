@@ -29,7 +29,7 @@ export function App(): React.JSX.Element {
   const [routed, setRouted] = useState(0)
   const [traffic, setTraffic] = useState<Record<string, Traffic>>({})
   const [generations, setGenerations] = useState<Record<string, number>>({})
-  const [form, setForm] = useState<{ edit?: AgentConfig } | null>(null)
+  const [form, setForm] = useState<{ edit?: AgentConfig; copyOf?: AgentConfig } | null>(null)
   const [aim, setAim] = useState<{ to: string; n: number }>()
   const [commsView, setCommsView] = useState<CommsView>('comms')
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -237,6 +237,7 @@ export function App(): React.JSX.Element {
       {form && (
         <AgentForm
           agent={form.edit}
+          copyOf={form.copyOf}
           takenIds={agents.map((a) => a.id)}
           onCancel={() => setForm(null)}
           onSave={async (input) => {
@@ -285,6 +286,7 @@ export function App(): React.JSX.Element {
               agent={current}
               task={traffic[current.id]?.task}
               onEdit={() => setForm({ edit: current })}
+              onClone={() => setForm({ copyOf: current })}
               onFire={() => fire(current)}
               onRestart={() => restart(current.id)}
               running={statuses[current.id] !== 'exited'}

@@ -6,6 +6,8 @@ import type { AgentConfig, AgentPatch, Autonomy } from '@shared/types'
 interface Props {
   /** The agent being edited; hiring when absent. */
   agent?: AgentConfig
+  /** Hiring a copy of this agent: the form starts filled in from it. */
+  copyOf?: AgentConfig
   /** Ids already on the team, to preview the new agent's id. */
   takenIds: string[]
   /** Hiring sends everything but the color, which the hive picks; editing can change it too. */
@@ -14,14 +16,15 @@ interface Props {
 }
 
 /** Hire a new agent (optionally from a role template) or edit an existing one. */
-export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.JSX.Element {
-  const [name, setName] = useState(agent?.name ?? '')
-  const [role, setRole] = useState(agent?.role ?? '')
-  const [command, setCommand] = useState(agent ? [agent.command, ...agent.args].join(' ') : 'claude')
-  const [model, setModel] = useState(agent ? (agent.model ?? '') : 'sonnet')
-  const [autonomy, setAutonomy] = useState<Autonomy>(agent?.autonomy ?? 'inherit')
-  const [cwd, setCwd] = useState(agent?.cwd ?? '')
-  const [worktree, setWorktree] = useState(agent?.worktree ?? false)
+export function AgentForm({ agent, copyOf, takenIds, onSave, onCancel }: Props): React.JSX.Element {
+  const from = agent ?? copyOf
+  const [name, setName] = useState(from?.name ?? '')
+  const [role, setRole] = useState(from?.orchestrator ? '' : (from?.role ?? ''))
+  const [command, setCommand] = useState(from ? [from.command, ...from.args].join(' ') : 'claude')
+  const [model, setModel] = useState(from ? (from.model ?? '') : 'sonnet')
+  const [autonomy, setAutonomy] = useState<Autonomy>(from?.autonomy ?? 'inherit')
+  const [cwd, setCwd] = useState(from?.cwd ?? '')
+  const [worktree, setWorktree] = useState(from?.worktree ?? false)
   const [color, setColor] = useState(agent?.color ?? '')
   const editing = Boolean(agent)
   const program = command.trim().split(/\s+/)[0] ?? ''
@@ -63,8 +66,8 @@ export function AgentForm({ agent, takenIds, onSave, onCancel }: Props): React.J
   return (
     <div className="modal-backdrop" onClick={onCancel} onKeyDown={(e) => e.key === 'Escape' && onCancel()}>
       <form className="panel agent-form" onSubmit={submit} onClick={(e) => e.stopPropagation()}>
-        <h2>{editing ? `Edit ${agent!.name}` : 'Hire an agent'}</h2>
-        {!editing && (
+        <h2>{editing ? `Edit ${agent!.name}` : copyOf ? `Hire another ${copyOf.name}` : 'Hire an agent'}</h2>
+        {!editing && !copyOf && (
           <label>
             Start from a role
             <select defaultValue="" onChange={(e) => useTemplate(e.target.value)}>
