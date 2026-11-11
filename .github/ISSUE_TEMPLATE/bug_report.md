@@ -21,4 +21,5 @@ labels: bug
 
 **Logs**
 
-Anything from the agent's terminal, or files in `.vandelay/dead-letter/`.
+Attach `vandelay.log` (Settings → Open logs folder), plus anything from the agent's terminal or
+files in `.vandelay/dead-letter/`.

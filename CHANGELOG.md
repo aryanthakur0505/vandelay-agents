@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Errors are logged to `vandelay.log` (Settings → Open logs folder), and a UI crash shows a recovery
+  screen instead of a blank window.
+- The renderer runs sandboxed, and every IPC argument is checked in the main process.
+- ESLint (TypeScript and React hooks rules) runs in CI; fixed what it found.
 - **Settings** panel: theme, terminal text size, sound, and team export/import as
   `vandelay-team.json`.
 - **Stuck** tab: mail held by the loop guard or dead-lettered, with **Deliver** and **Discard**.
