@@ -68,6 +68,14 @@ export function SettingsPanel({ theme, onTheme, sound, onSound, fontSize, onFont
         </div>
         {teamNote && <p className="hint">{teamNote}</p>}
 
+        <h3>Troubleshooting</h3>
+        <p className="hint">The app logs errors and start-ups to a file. Attach it when you report a bug.</p>
+        <div className="row">
+          <button type="button" onClick={() => window.vandelay.openLogs()}>
+            Open logs folder
+          </button>
+        </div>
+
         <div className="actions">
           <button type="button" className="primary" onClick={onClose}>
             Done
