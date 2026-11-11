@@ -12,6 +12,7 @@ import { useLatest } from './hooks'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 import { SettingsPanel } from './SettingsPanel'
+import { SetupCheck } from './SetupCheck'
 import { StatusBar } from './StatusBar'
 import { openTasks, pendingQuestions, taskCounts } from './tasks'
 import { TermBar } from './TermBar'
@@ -34,6 +35,16 @@ export function App(): React.JSX.Element {
   const [aim, setAim] = useState<{ to: string; n: number }>()
   const [commsView, setCommsView] = useState<CommsView>('comms')
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [setupSeen, setSetupSeen] = usePref<boolean>('setupSeen', false)
+  const [setupOpen, setSetupOpen] = useState(false)
+  // The checklist shows on the first run, and again whenever an essential tool goes missing.
+  useEffect(() => {
+    window.vandelay.setupStatus().then((s) => {
+      if (!setupSeen || !s.claude || !s.node) setSetupOpen(true)
+    })
+    // Once per launch; later changes to setupSeen don't need a new check.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   const [stuck, setStuck] = useState<StuckMail[]>([])
   useEffect(() => {
     const refresh = (): void => void window.vandelay.stuckMail().then(setStuck)
@@ -226,6 +237,15 @@ export function App(): React.JSX.Element {
           </button>
         </div>
       </header>
+
+      {setupOpen && !booting && (
+        <SetupCheck
+          onClose={() => {
+            setSetupOpen(false)
+            setSetupSeen(true)
+          }}
+        />
+      )}
 
       {settingsOpen && (
         <SettingsPanel
