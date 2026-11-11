@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- An end-to-end test drives the real app in CI.
 - Auto-update on Windows and Linux from GitHub Releases, with **Restart to update**.
 - Installers for Intel Macs and a `.deb` for Debian and Ubuntu.
 - Releases sign themselves once certificates are added (docs/SIGNING.md); release notes come from
