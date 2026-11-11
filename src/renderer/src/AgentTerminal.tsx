@@ -77,6 +77,9 @@ export function AgentTerminal({ agent, visible, generation, theme, fontSize, onZ
       input.dispose()
       t.dispose()
     }
+    // Built once per agent: theme and font size are applied to the live terminal by the effects
+    // below, since re-creating it would lose the scrollback.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [agent.id])
 
   useEffect(() => {
