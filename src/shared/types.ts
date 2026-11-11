@@ -59,6 +59,17 @@ export interface HiveMessage {
 /** Files in an agent's hive folder you can open from the app. */
 export type AgentFile = 'memory.md' | 'ROLE.md'
 
+/** Tools found on PATH (full paths, or null), and whether the workspace is a git repository. */
+export interface SetupStatus {
+  /** Claude Code: agents run it. */
+  claude: string | null
+  /** Node.js: claude agents' mail hook runs on it. */
+  node: string | null
+  /** git: needed for per-agent worktrees. */
+  git: string | null
+  workspaceIsGit: boolean
+}
+
 export interface VandelayApi {
   workspace(): Promise<string>
   /** Asks where to save, then writes the text there. Resolves to the path, or null if cancelled. */
