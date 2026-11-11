@@ -8,6 +8,7 @@ import { CommsLog, type CommsView } from './CommsLog'
 import { Composer } from './Composer'
 import { FLIGHT_MS, Floor, type Flight } from './Floor'
 import { FONT_SIZE, nextFontSize } from './format'
+import { useLatest } from './hooks'
 import { beep, usePref } from './prefs'
 import { WORKING_WINDOW_MS, type AgentStatus, type Theme } from './status'
 import { SettingsPanel } from './SettingsPanel'
@@ -48,10 +49,8 @@ export function App(): React.JSX.Element {
   const lastOutput = useRef<Record<string, number>>({})
   const upSince = useRef<Record<string, number>>({})
   const exited = useRef<Set<string>>(new Set())
-  const selectedRef = useRef(selected)
-  selectedRef.current = selected
-  const soundRef = useRef(sound)
-  soundRef.current = sound
+  const selectedRef = useLatest(selected)
+  const soundRef = useLatest(sound)
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme
@@ -127,8 +126,7 @@ export function App(): React.JSX.Element {
   }
 
   // Alt+1…9 jumps to an agent. Alt+digit means nothing to the agent CLIs, so terminals don't miss it.
-  const agentsRef = useRef(agents)
-  agentsRef.current = agents
+  const agentsRef = useLatest(agents)
   useEffect(() => {
     const onKey = (e: KeyboardEvent): void => {
       if (!e.altKey || e.ctrlKey || e.metaKey || !/^Digit[1-9]$/.test(e.code)) return
