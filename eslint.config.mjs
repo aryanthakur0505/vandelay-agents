@@ -16,7 +16,7 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules
   },
   {
-    files: ['src/main/**/*.ts', 'src/preload/**/*.ts', 'test/**/*.ts', '*.config.{ts,mjs}'],
+    files: ['src/main/**/*.ts', 'src/preload/**/*.ts', 'test/**/*.ts', 'e2e/**/*.ts', 'scripts/**/*.mjs', '*.config.{ts,mjs}'],
     languageOptions: { globals: globals.node }
   },
   {
