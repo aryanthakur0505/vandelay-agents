@@ -57,7 +57,7 @@
     "electron": "^45.2.1",
     "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
-    "eslint": "^9.39.5",
+    "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "~17.13.0",
     "prettier": "^3.9.10",
