@@ -25,6 +25,16 @@ jobs:
       - run: npm ci
       - run: npm test
       - run: npm run dist -- --publish never
+        env:
+          # Signing turns on by itself once these secrets exist; until then builds are unsigned.
+          # See docs/SIGNING.md.
+          CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          WIN_CSC_LINK: ${{ secrets.WIN_CERT_PFX_BASE64 }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
       - uses: softprops/action-gh-release@v2
         with:
           draft: false
