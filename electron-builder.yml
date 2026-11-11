@@ -23,8 +23,13 @@ nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
 mac:
-  target: dmg
+  # Apple silicon and Intel Macs each get their own dmg.
+  target:
+    - target: dmg
+      arch: [arm64, x64]
   category: public.app-category.developer-tools
 linux:
-  target: AppImage
+  # AppImage runs anywhere; the .deb installs properly on Debian and Ubuntu.
+  target: [AppImage, deb]
   category: Development
+  maintainer: Vandelay Agents contributors <227968872+aryanthakur0505@users.noreply.github.com>
