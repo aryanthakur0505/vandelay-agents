@@ -4,6 +4,7 @@ import { basename, join } from 'node:path'
 import { HR, nextId, slug, SYSTEM, YOU } from '@shared/ids'
 import { MAX_TEMPS, ROLE_TEMPLATES } from '@shared/templates'
 import type { AgentConfig, AgentInput, AgentPatch, HiveMessage, StuckMail } from '@shared/types'
+import { log } from './log'
 import { findExecutable } from './terminals'
 
 const PALETTE = ['#e4572e', '#29335c', '#f3a712', '#669bbc', '#a8c686', '#8e5572', '#2a9d8f', '#d4a373']
@@ -184,7 +185,7 @@ export class Hive extends EventEmitter {
       // Fall through.
     }
     renameSync(file, `${file}.broken-${Date.now()}`)
-    console.error(`[hive] ${file} was unreadable; saved a copy and started with the default team`)
+    log.warn(`[hive] ${file} was unreadable; saved a copy and started with the default team`)
     return defaultAgents()
   }
 
@@ -423,7 +424,7 @@ export class Hive extends EventEmitter {
             )
           }
         } catch (err) {
-          console.error('[hive] failed to route', path, err)
+          log.error('[hive] failed to route', path, err)
         }
       }
     }

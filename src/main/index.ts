@@ -12,6 +12,7 @@ import { findExecutable, isShell, Terminals } from './terminals'
 import { askForWorkspace, chooseWorkspace, relaunchArgs } from './workspace'
 import { DEFAULT_SIZE, loadWindowState, MIN_SIZE, saveWindowState, usableBounds } from './windowState'
 import * as check from './ipcGuards'
+import { initLog, log } from './log'
 import { ensureWorktree } from './worktrees'
 
 // Opt-in Chrome DevTools Protocol port, handy for driving the UI from scripts.
@@ -226,7 +227,7 @@ function wire(): void {
     const file = rawFile === undefined ? undefined : check.oneOf(rawFile, 'file', OPENABLE)
     if (!hive.get(id)) return
     const error = await shell.openPath(file ? join(hive.agentDir(id), file) : hive.agentDir(id))
-    if (error) console.error('[vandelay] could not open', id, file, error)
+    if (error) log.warn('could not open', id, file, error)
   })
   ipcMain.handle(IPC.hiveSend, (_e, to: unknown, body: unknown) => {
     hive.deliver(YOU, check.text(to, 'recipient', 100), check.text(body, 'message'))
@@ -252,7 +253,13 @@ function wire(): void {
   })
 }
 
+// Anything that slips through ends up in the log rather than vanishing (or killing the app silently).
+process.on('uncaughtException', (err) => log.error('uncaught', err))
+process.on('unhandledRejection', (err) => log.error('unhandled rejection', err))
+
 app.whenReady().then(() => {
+  initLog(app.getPath('logs'))
+  log.info(`Vandelay Agents ${app.getVersion()} on ${process.platform} ${process.arch}`)
   const chosen = chooseWorkspace()
   if (!chosen) return app.quit()
   workspace = chosen
