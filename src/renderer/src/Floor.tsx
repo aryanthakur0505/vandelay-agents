@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { AgentConfig } from '@shared/types'
 import { badgeCount } from './format'
+import { useLatest } from './hooks'
 import { statusColors, unitTag, type AgentStatus, type Theme } from './status'
 
 export interface Flight {
@@ -402,8 +403,8 @@ function drawControl(ctx: CanvasRenderingContext2D, sc: Scene): void {
 
 export function Floor(props: Props): React.JSX.Element {
   const canvas = useRef<HTMLCanvasElement>(null)
-  const latest = useRef(props)
-  latest.current = props
+  // The animation loop runs for the component's life and reads the newest props each frame.
+  const latest = useLatest(props)
 
   useEffect(() => {
     let frame = 0
