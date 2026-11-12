@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.1 (2026-11-12)
+
+- Mac installers are back: an unset signing secret no longer breaks the Mac build, which left 0.4.0
+  without them.
+
 ## 0.4.0 (2026-11-12)
 
 - An end-to-end test drives the real app in CI.
