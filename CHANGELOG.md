@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.2 (2026-11-12)
+
+- The `.deb` now pulls in the sound library Electron needs (`libasound2t64` on Ubuntu 24.04), so the
+  app starts on minimal installs too.
+
 ## 0.4.1 (2026-11-12)
 
 - Mac installers are back: an unset signing secret no longer breaks the Mac build, which left 0.4.0
