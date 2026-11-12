@@ -33,3 +33,17 @@ linux:
   target: [AppImage, deb]
   category: Development
   maintainer: Vandelay Agents contributors <227968872+aryanthakur0505@users.noreply.github.com>
+deb:
+  # electron-builder's defaults, plus ALSA: Electron won't start without libasound, and Ubuntu 24.04
+  # renamed it libasound2t64, so a minimal install didn't pull it in.
+  depends:
+    - libgtk-3-0
+    - libnotify4
+    - libnss3
+    - libxss1
+    - libxtst6
+    - xdg-utils
+    - libatspi2.0-0
+    - libuuid1
+    - libsecret-1-0
+    - libasound2t64 | libasound2
