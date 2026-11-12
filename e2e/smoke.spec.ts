@@ -18,7 +18,8 @@ test.beforeAll(async () => {
     JSON.stringify([agent('art', 'Art Vandelay', { orchestrator: true }), agent('kramer', 'Kramer'), agent('elaine', 'Elaine')])
   )
   app = await electron.launch({
-    args: ['.'],
+    // A fresh profile too, so the test never touches your settings and always sees a first run.
+    args: ['.', `--user-data-dir=${join(workspace, 'profile')}`],
     env: { ...process.env, VANDELAY_WORKSPACE: workspace, VANDELAY_NO_UPDATES: '1' } as Record<string, string>
   })
   page = await app.firstWindow()
