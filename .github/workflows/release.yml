@@ -47,7 +47,7 @@ jobs:
           [ -n "$CSC_LINK" ] || echo "CSC_IDENTITY_AUTO_DISCOVERY=false" >> "$GITHUB_ENV"
       - run: npm run dist -- --publish never
       - run: node scripts/release-notes.mjs ${{ github.ref_name }} > release-notes.md
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           draft: false
           # The CHANGELOG section first, then GitHub's list of commits since the last release.
