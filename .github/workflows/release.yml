@@ -24,10 +24,12 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
-      - run: npm run dist -- --publish never
+      # Signing turns on by itself once these secrets exist; until then builds are unsigned (see
+      # docs/SIGNING.md). Only secrets that are set get passed on: electron-builder reads an empty
+      # CSC_LINK as a path to the current folder and fails.
+      - name: Signing settings
+        shell: bash
         env:
-          # Signing turns on by itself once these secrets exist; until then builds are unsigned.
-          # See docs/SIGNING.md.
           CSC_LINK: ${{ secrets.MAC_CERT_P12_BASE64 }}
           CSC_KEY_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -35,6 +37,15 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           WIN_CSC_LINK: ${{ secrets.WIN_CERT_PFX_BASE64 }}
           WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
+        run: |
+          for name in CSC_LINK CSC_KEY_PASSWORD APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID WIN_CSC_LINK WIN_CSC_KEY_PASSWORD; do
+            value="${!name}"
+            [ -n "$value" ] || continue
+            { echo "$name<<VANDELAY_EOF"; echo "$value"; echo "VANDELAY_EOF"; } >> "$GITHUB_ENV"
+          done
+          # Without a certificate, don't let the Mac build go looking for one in the keychain.
+          [ -n "$CSC_LINK" ] || echo "CSC_IDENTITY_AUTO_DISCOVERY=false" >> "$GITHUB_ENV"
+      - run: npm run dist -- --publish never
       - run: node scripts/release-notes.mjs ${{ github.ref_name }} > release-notes.md
       - uses: softprops/action-gh-release@v2
         with:
