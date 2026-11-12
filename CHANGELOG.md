@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 (2026-11-12)
 
 - An end-to-end test drives the real app in CI.
 - Auto-update on Windows and Linux from GitHub Releases, with **Restart to update**.
